@@ -1,0 +1,20 @@
+apiVersion: v2
+name: mosip-token-seeder
+description: A Helm chart for mosip-token-seeder.
+type: application
+version: 0.1.0
+appVersion: ""
+home: https://mosip.io
+dependencies:
+- name: common
+  repository: https://charts.bitnami.com/bitnami
+  tags:
+   - bitnami-common
+  version: 1.x.x
+keywords:
+  - mosip
+  - mosip-token-seeder
+  - openg2p
+maintainers:
+  - email: info@mosip.io
+    name: MOSIP

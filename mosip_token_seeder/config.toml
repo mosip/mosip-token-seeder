@@ -1,0 +1,35 @@
+[root]
+context_path = '/'
+api_path_prefix = '/'
+pid_grep_name = 'gunicorn'
+default_lang_code = "eng"
+output_stored_files_path = "stored_files"
+full_address_delimiter = ', '
+name_delimiter = ' '
+
+[logging]
+log_file_name = "mosip_token_seeder.log"
+log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+[db]
+location = 'sqlite+pysqlcipher://:<password>@/auth_token_seeder.dbsqlite'
+username = ''
+password = ''
+random_password_length = 16
+generate_db_always = true
+generate_password_always = true
+print_password_on_startup = true
+
+
+[gunicorn]
+worker_id = 0
+# the following are set using env variables
+# workers
+# max_requests
+# timeout
+# keep_alive
+
+[docker]
+pod_name = 'token-seeder-0'
+pod_id = 0
+replicas = 1

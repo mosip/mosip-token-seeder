@@ -1,0 +1,33 @@
+{
+  "id": "",
+  "version": "",
+  "metadata": "",
+  "requesttime": "2022-07-08T06:57:05.189Z",
+  "request": {
+    "output": "csv",
+    "deliverytype": "download",
+    "lang": "eng",
+    "authdata": [{
+      "vid": "2014391641351279",
+      "fullName": "EMANASAR-TEST-6",
+      "gender": "Male",
+      "dateOfBirth": "1976/01/01",
+      "phone": "8360334018",
+      "email": "PRASHANT.SINGH@IIITB.AC.IN",
+      "address": "BANGALORE",
+      "locality": "Electronics City",
+      "city": "Bengaluru",
+      "state":"Karnataka",
+      "zip":"560016"
+    }],
+    "mapping": {
+      "vid": "vid",
+      "name": ["fullName"],
+      "gender": "gender",
+      "dob": "dateOfBirth",
+      "phoneNumber": "phone",
+      "emailId": "email",
+      "fullAddress": ["address","locality","city","state","zip"]
+    }
+  }
+}

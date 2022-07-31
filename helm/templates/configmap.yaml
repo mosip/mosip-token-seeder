@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+data:
+  TOKENSEEDER_ROOT__CONTEXT_PATH: {{ .Values.seeder.contextPath }}
+  TOKENSEEDER_MOSIP_AUTH_SERVER__IDA_AUTH_DOMAIN_URI: {{ .Values.seeder.mosipAuth.idaAuthDomainUri | quote }}
+  TOKENSEEDER_MOSIP_AUTH_SERVER__IDA_AUTH_URL: {{ .Values.seeder.mosipAuth.idaAuthUrl | quote }}
+  TOKENSEEDER_CRYPTO_ENCRYPT__ENCRYPT_CERT_PATH: {{ .Values.seeder.crypto.encryptCertPath | quote }}
+  TOKENSEEDER_CRYPTO_SIGNATURE__SIGN_P12_FILE_PATH: {{ .Values.seeder.crypto.signP12FilePath | quote }}

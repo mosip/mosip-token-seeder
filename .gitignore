@@ -1,0 +1,8 @@
+venv_token_seeder
+.vscode
+__pycache__
+stored_files
+certs
+**/*.log
+**/*.db
+**/*.dbsqlite

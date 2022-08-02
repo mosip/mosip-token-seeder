@@ -2,7 +2,7 @@ apiVersion: v2
 name: mosip-token-seeder
 description: A Helm chart for mosip-token-seeder.
 type: application
-version: 0.1.0
+version: 10.0.0
 appVersion: ""
 home: https://mosip.io
 dependencies:

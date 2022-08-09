@@ -44,7 +44,7 @@ class TokenSeeder(Thread):
                                     auth_data_output_json = self.authenticator.do_auth(json.loads(auth_token_data_entry.auth_data_input))
                                     self.logger.debug("Auth output json data: %s", auth_data_output_json)
                                     auth_data_output = json.loads(auth_data_output_json)
-                                    if auth_data_output['response']['authStatus']:
+                                    if 'response' in auth_data_output and auth_data_output['response']['authStatus']:
                                         auth_token_data_entry.auth_data_output = auth_data_output_json
                                         auth_token_data_entry.token = auth_data_output['response']['authToken']
                                         auth_token_data_entry.status = "processed"
@@ -67,6 +67,12 @@ class TokenSeeder(Thread):
                                     auth_token_data_entry.status = "error"
                                     auth_token_data_entry.error_code = ae.error_code
                                     auth_token_data_entry.error_message = ae.error_message
+                                    auth_request.number_error += 1
+                                except Exception as ex:
+                                    self.logger.error('Authenticator Exception: %s', repr(ex))
+                                    auth_token_data_entry.status = "error"
+                                    auth_token_data_entry.error_code = "ATS-REQ-100"
+                                    auth_token_data_entry.error_message = "Unknown exception"
                                     auth_request.number_error += 1
                                 auth_token_data_entry.update_timestamp()
                                 auth_request.update_timestamp()

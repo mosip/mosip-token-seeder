@@ -58,7 +58,7 @@ def init_config():
 
 def init_logger(config):
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(getattr(logging,config.logging.loglevel))
     fileHandler = logging.FileHandler(config.logging.log_file_name)
     streamHandler = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter(config.logging.log_format)

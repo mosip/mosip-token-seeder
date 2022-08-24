@@ -47,7 +47,7 @@ class ODKPullService:
                 raise MOSIPTokenSeederException(
                     'ATS-REQ-21', 'no odk project id provided')
 
-            if config.formid is not None or not len(config.formid):
+            if config.formid is None or not len(config.formid):
                 raise MOSIPTokenSeederException(
                     'ATS-REQ-22', 'no odk form id provided')
 

@@ -18,8 +18,13 @@ class MappingService:
             return self.validate_auth_data_indices_mapper(authdata, mapping, language)
 
     def validate_auth_data_json_mapper(self, authdata : dict, mapping: MapperFields, language):
+
+        #"." is used to identify if the target auth_data is having any nested json.        
+        #for eg. if vid is inside a json object qrcodedata the mapping definition could be qrcodedata.vid
+
         final_dict = {}
-        if mapping.vid.find('.') !=-1:
+        
+        if mapping.vid.find('.') !=-1:                                                  
             final_dict['vid'] = self.extract_nested_value(mapping.vid, authdata, mapping)    
         else :    
             if mapping.vid not in authdata:
@@ -30,7 +35,7 @@ class MappingService:
 
         name_arr = []
         for name_var in mapping.name:
-            if name_var.find('.') != -1 :
+            if name_var.find('.') != -1 :                                               
                 name_val = self.extract_nested_value(name_var, authdata, mapping)
                 if name_val:
                     name_arr.append(name_val )
@@ -44,7 +49,7 @@ class MappingService:
         final_dict['name'] = [{'language':language,'value': self.config.root.name_delimiter.join(name_arr)}]
 
 
-        if mapping.gender.find('.') != -1 :  
+        if mapping.gender.find('.') != -1 :                                             
             final_dict['gender'] = [{'language':language,'value': self.extract_nested_value(mapping.gender, authdata, mapping) }]   
         else :
             if mapping.gender not in authdata:
@@ -57,7 +62,7 @@ class MappingService:
             #     return None, 'ATS-REQ-005'
             final_dict['gender'] = [{'language':language,'value': authdata[mapping.gender]}]
 
-        if mapping.dob.find('.') != -1 : 
+        if mapping.dob.find('.') != -1 :                                                
             final_dict['dob'] = self.extract_nested_value(mapping.dob, authdata, mapping) 
         else:
             if mapping.dob not in authdata:
@@ -160,6 +165,7 @@ class MappingService:
         return AuthTokenBaseModel(**final_dict),""
 
     def extract_nested_value(self, mapping_field, authdata : dict, mapping: MapperFields) :
+        # this method traverses the nested json to find the value based on the mapping field provided as per template (refer the api documentation) 
         parts = mapping_field.split(".")
         part_value = authdata[parts[0]]
         part_index = 1

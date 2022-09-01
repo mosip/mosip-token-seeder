@@ -66,6 +66,9 @@ class ODKPullService:
         response_json_string = response.read().decode()
         submissions = json.loads(response_json_string)
         if 'value' in submissions:
+            if submissions['value'] is None  or  len(submissions['value']) == 0 :
+                raise MOSIPTokenSeederException(
+                    'ATS-REQ-23', 'no submissions found for odk pull')     
             return submissions['value']
         else:
             raise MOSIPTokenSeederException(

@@ -19,57 +19,84 @@ class MappingService:
 
     def validate_auth_data_json_mapper(self, authdata : dict, mapping: MapperFields, language):
         final_dict = {}
-        if mapping.vid not in authdata:
-            return None, 'ATS-REQ-009'
-        # if len(authdata[mapping.vid]) <= 16 and len(authdata[mapping.vid]) >= 19:
-        #     return None, 'ATS-REQ-002'
-        final_dict['vid'] = authdata[mapping.vid]
+        if mapping.vid.find('.') !=-1:
+            final_dict['vid'] = self.extract_nested_value(mapping.vid, authdata, mapping)    
+        else :    
+            if mapping.vid not in authdata:
+                return None, 'ATS-REQ-009'
+            # if len(authdata[mapping.vid]) <= 16 and len(authdata[mapping.vid]) >= 19:
+            #     return None, 'ATS-REQ-002'
+            final_dict['vid'] = authdata[mapping.vid]
 
         name_arr = []
         for name_var in mapping.name:
-            if name_var not in authdata:
-                return None, 'ATS-REQ-010'
-            if len(authdata[name_var]) == 0:
-                return None, 'ATS-REQ-003'
-            name_arr.append(authdata[name_var])
+            if name_var.find('.') != -1 :
+                name_val = self.extract_nested_value(name_var, authdata, mapping)
+                if name_val:
+                    name_arr.append(name_val )
+            else:
+                if name_var not in authdata:
+                    return None, 'ATS-REQ-010'
+                if len(authdata[name_var]) == 0:
+                    return None, 'ATS-REQ-003'
+                name_arr.append(authdata[name_var])
+
         final_dict['name'] = [{'language':language,'value': self.config.root.name_delimiter.join(name_arr)}]
 
-        if mapping.gender not in authdata:
-            return None, 'ATS-REQ-011'
-        if len(authdata[mapping.gender]) == 0:
-            return None, 'ATS-REQ-004'
-        # if len(authdata[mapping.gender]) > 256:
-        #     return None, 'ATS-REQ-003'
-        # if authdata[mapping.gender].lower() not in ['male','female','others']:
-        #     return None, 'ATS-REQ-005'
-        final_dict['gender'] = [{'language':language,'value': authdata[mapping.gender]}]
 
-        if mapping.dob not in authdata:
-            return None, 'ATS-REQ-012'
-        if len(authdata[mapping.dob]) == 0:
-            return False, 'ATS-REQ-006'
-        # try:
-        #     if bool(datetime.strptime(authdata[mapping.dob], '%Y/%m/%d')) == False:
-        #         return None, 'ATS-REQ-007'
-        # except ValueError:
-        #     return None, 'ATS-REQ-007'
-        final_dict['dob'] = authdata[mapping.dob]
-        
-        if mapping.phoneNumber not in authdata:
-            return None, 'ATS-REQ-013'
-        final_dict['phoneNumber'] = authdata[mapping.phoneNumber]
+        if mapping.gender.find('.') != -1 :  
+            final_dict['gender'] = [{'language':language,'value': self.extract_nested_value(mapping.gender, authdata, mapping) }]   
+        else :
+            if mapping.gender not in authdata:
+                return None, 'ATS-REQ-011'
+            if len(authdata[mapping.gender]) == 0:
+                return None, 'ATS-REQ-004'
+            # if len(authdata[mapping.gender]) > 256:
+            #     return None, 'ATS-REQ-003'
+            # if authdata[mapping.gender].lower() not in ['male','female','others']:
+            #     return None, 'ATS-REQ-005'
+            final_dict['gender'] = [{'language':language,'value': authdata[mapping.gender]}]
 
-        if mapping.emailId not in authdata:
-            return None, 'ATS-REQ-014'
-        final_dict['emailId'] = authdata[mapping.emailId]
+        if mapping.dob.find('.') != -1 : 
+            final_dict['dob'] = self.extract_nested_value(mapping.dob, authdata, mapping) 
+        else:
+            if mapping.dob not in authdata:
+                return None, 'ATS-REQ-012'
+            if len(authdata[mapping.dob]) == 0:
+                return False, 'ATS-REQ-006'
+            # try:
+            #     if bool(datetime.strptime(authdata[mapping.dob], '%Y/%m/%d')) == False:
+            #         return None, 'ATS-REQ-007'
+            # except ValueError:
+            #     return None, 'ATS-REQ-007'
+            final_dict['dob'] = authdata[mapping.dob]
+            
+        if mapping.phoneNumber.find('.') != -1 : 
+            final_dict['phoneNumber'] = self.extract_nested_value(mapping.phoneNumber, authdata, mapping) 
+        else:
+            if mapping.phoneNumber in authdata:
+                # return None, 'ATS-REQ-013' // removed phone validation
+                final_dict['phoneNumber'] = authdata[mapping.phoneNumber]
+
+        if mapping.emailId.find('.') != -1 :
+                final_dict['emailId'] = self.extract_nested_value(mapping.emailId, authdata, mapping) 
+        else :
+            if mapping.emailId  in authdata:
+                # return None, 'ATS-REQ-014' // removed email validation
+                final_dict['emailId'] = authdata[mapping.emailId]
 
         addr_arr = []
         for addr in mapping.fullAddress:
-            if addr not in authdata:
-                return None, 'ATS-REQ-015'
-            if len(authdata[addr]) == 0:
-                return False, 'ATS-REQ-008'
-            addr_arr.append(authdata[addr])
+            if addr.find('.') != -1 :
+                addr_val  = self.extract_nested_value(addr, authdata, mapping)
+                if addr_val:
+                    addr_arr.append(addr_val)
+            else:
+                if addr not in authdata:
+                    return None, 'ATS-REQ-015'
+                if len(authdata[addr]) == 0:
+                    return False, 'ATS-REQ-008'
+                addr_arr.append(authdata[addr])
         final_dict['fullAddress'] = [{'language':language,'value': self.config.root.full_address_delimiter.join(addr_arr)}]
 
         return AuthTokenBaseModel(**final_dict),""
@@ -131,3 +158,15 @@ class MappingService:
         final_dict['fullAddress'] = [{'language':language,'value': self.config.root.full_address_delimiter.join(addr_arr)}]
 
         return AuthTokenBaseModel(**final_dict),""
+
+    def extract_nested_value(self, mapping_field, authdata : dict, mapping: MapperFields) :
+        parts = mapping_field.split(".")
+        part_value = authdata[parts[0]]
+        part_index = 1
+        while part_index < len(parts):
+            if part_value and parts[part_index] in part_value:
+                part_value = part_value[parts[part_index]]
+            else :
+                part_value = None
+            part_index += 1
+        return part_value

@@ -7,6 +7,9 @@ output_stored_files_path = "stored_files"
 full_address_delimiter = ', '
 name_delimiter = ' '
 
+[authtoken]
+mandatory_validation_auth_fields = 'name,gender,dob,phoneNumber,emailId,fullAddress'
+
 [logging]
 log_file_name = "mosip_token_seeder.log"
 log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

@@ -13,8 +13,8 @@ from fastapi import UploadFile
 from mosip_token_seeder.authtokenapi.model.authtoken_odk_request import AuthTokenODKRequest
 from mosip_token_seeder.authtokenapi.service.odk_pull_service import ODKPullService
 
-from ..model import AuthTokenRequest, MapperFields, MapperFieldIndices, AuthTokenBaseModel
-from ..model import AuthTokenCsvRequest, AuthTokenCsvRequestWithHeader, AuthTokenCsvRequestWithoutHeader
+from ..model import AuthTokenRequest
+from ..model import AuthTokenCsvRequestWithHeader
 from ..exception import MOSIPTokenSeederNoException
 from mosip_token_seeder.repository import AuthTokenRequestRepository, AuthTokenRequestDataRepository
 from mosip_token_seeder.repository import db_tools
@@ -81,32 +81,27 @@ class AuthTokenService:
         self.request_id_queue.put(req_id)
         return req_id
 
-    def save_authtoken_csv(self, request: AuthTokenCsvRequest, csv_file: UploadFile):
+    def save_authtoken_csv(self, request: AuthTokenCsvRequestWithHeader, csv_file: UploadFile):
         language = request.lang
         if not request.lang:
             language = self.config.root.default_lang_code
 
         req_id = str(uuid.uuid4())
 
-        if isinstance(request, AuthTokenCsvRequestWithHeader):
-            with_header = True
-            csv_header = None
-        elif isinstance(request, AuthTokenCsvRequestWithoutHeader):
-            with_header = False
+        csv_header = None
 
         line_no = 0
         error_count = 0
         csv_reader = csv.reader(codecs.iterdecode(
             csv_file.file, 'UTF-8'), delimiter=request.csvDelimiter)
         for csv_line in csv_reader:
-            if with_header and line_no == 0 and not csv_header:
+            if not csv_header:
                 csv_header = csv_line
                 continue
-            elif with_header:
-                authdata = {column_name: csv_line[i]
-                            for i, column_name in enumerate(csv_header)}
-            elif not with_header:
-                authdata = csv_line
+
+            authdata = {column_name: csv_line[i]
+                        for i, column_name in enumerate(csv_header)}
+
             line_no += 1
 
             authdata_model = AuthTokenRequestDataRepository(

@@ -7,17 +7,22 @@ from mosip_token_seeder.repository import db_tools
 
 from .service import AuthTokenService
 from .exception import MOSIPTokenSeederException
-from .model import AuthTokenHttpRequest, AuthTokenCsvHttpRequest, BaseHttpResponse, AuthTokenODKHttpRequest
+from .model import AuthTokenRequest, AuthTokenHttpRequest, AuthTokenCsvHttpRequest, BaseHttpResponse, AuthTokenODKHttpRequest
 
 class AuthTokenApi:
-    def __init__(self, app, config, logger, request_id_queue):
+    def __init__(self, app, config, logger, request_id_queue, authenticator=None):
+        self.config = config
+        self.logger = logger
         self.authtoken_service = AuthTokenService(config, logger, request_id_queue)
+        self.authenticator = authenticator
 
         @app.post(config.root.api_path_prefix + "authtoken/json", response_model=BaseHttpResponse, responses={422:{'model': BaseHttpResponse}})
         async def authtoken_json(request : AuthTokenHttpRequest = None):
             if not request:
                 raise MOSIPTokenSeederException('ATS-REQ-102', 'mission request body')
             ##call service to save the details.
+            if request.request.deliverytype=='sync':
+                return self.return_auth_token_sync(request.request)
             request_identifier = self.authtoken_service.save_authtoken_json(request.request)
             return BaseHttpResponse(response={
                 'request_identifier': request_identifier
@@ -45,3 +50,25 @@ class AuthTokenApi:
             return BaseHttpResponse(response={
                 'request_identifier': request_identifier
             })
+    def return_auth_token_sync(self, request : AuthTokenRequest):
+        if not self.authenticator:
+            return BaseHttpResponse(response={
+                'message': 'authenticator not found'
+            })
+        language = request.lang
+        if not request.lang:
+            language = self.config.root.default_lang_code
+        valid_authdata, error_code = self.authtoken_service.mapping_service.validate_auth_data(
+            request.authdata[0],
+            request.mapping,
+            language
+        )
+        if not valid_authdata:
+            raise MOSIPTokenSeederException(error_code, '')
+        else:
+            response = json.loads(self.authenticator.do_auth(json.loads(valid_authdata.json())))
+            if 'errors' in response and response['errors']:
+                errors = [{'errorCode': err['errorCode'], 'errorMessage': err['errorMessage']+'. '+err['actionMessage']} for err in response['errors']]
+                return BaseHttpResponse(**{'errors': errors, 'response': response['response']})
+            else:
+                return BaseHttpResponse(**{'response': response['response']})

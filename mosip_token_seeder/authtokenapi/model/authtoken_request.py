@@ -5,10 +5,9 @@ from ..exception import MOSIPTokenSeederException
 from . import MapperFields
 
 supported_output_types = ['json','csv']
-supported_delivery_types = ['download']
+supported_delivery_types = ['download','sync','callback']
 
 class AuthTokenBaseRequest(BaseModel):
-    print("AuthTokenBaseRequest called")
     output: str
     deliverytype: str
     mapping: MapperFields = MapperFields()
@@ -23,7 +22,12 @@ class AuthTokenBaseRequest(BaseModel):
         return value
     
     @validator('deliverytype', pre=True)
-    def delivery_valid(cls, value):
+    def delivery_valid(cls, value, values):
+        if value == 'sync':
+            if cls is not AuthTokenRequest:
+                raise MOSIPTokenSeederException('ATS-REQ-102','Only json input supported for sync delivery')
+            if values['output']!='json':
+                raise MOSIPTokenSeederException('ATS-REQ-102','Only json output supported for sync delivery')
         if not value:
             raise MOSIPTokenSeederException('ATS-REQ-102','delivery type is not mentioned')
         if value not in supported_delivery_types:
@@ -34,7 +38,10 @@ class AuthTokenRequest(AuthTokenBaseRequest):
     authdata: Optional[List[dict]]
 
     @validator('authdata')
-    def auth_data_validate(cls, value):
+    def auth_data_validate(cls, value, values):
+        if values['deliverytype'] == 'sync':
+            if len(value)>1:
+                raise MOSIPTokenSeederException('ATS-REQ-102','Only one authdata entry can be supplied for sync delivery')
         if not value:
             raise MOSIPTokenSeederException('ATS-REQ-102','authdata missing')
         return value

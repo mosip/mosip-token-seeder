@@ -13,7 +13,6 @@ supported_delivery_types = ['download']
 
 
 class ODKConfig(BaseModel):
-    print("ODKConfig called")
     odataurl : str
     baseurl : str
     version : str = "v1"
@@ -26,7 +25,6 @@ class ODKConfig(BaseModel):
 
 
 class AuthTokenODKRequest(AuthTokenBaseRequest):
-    print("AuthTokenODKRequest called")
     odkconfig : ODKConfig
 
     # @validator('odkconfig')
@@ -37,6 +35,5 @@ class AuthTokenODKRequest(AuthTokenBaseRequest):
     # pass
 
 class AuthTokenODKHttpRequest(AuthTokenHttpRequest):
-    print("AuthTokenODKHttpRequest called")
     request : AuthTokenODKRequest
     

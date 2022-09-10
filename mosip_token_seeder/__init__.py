@@ -3,6 +3,7 @@ import os
 import sys
 from fastapi import FastAPI
 from dynaconf import Dynaconf
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 def init_app(config):
     description = """
@@ -67,3 +68,20 @@ def init_logger(config):
     logger.addHandler(streamHandler)
     logger.addHandler(fileHandler)
     return logger
+
+def init_scheduler(app, config, logger):
+    if config.gunicorn.worker_id != 0:
+        return None
+    scheduler = AsyncIOScheduler()
+    @app.on_event("startup")
+    def start_scheduler():
+        scheduler.start()
+    @app.on_event("shutdown")
+    def shutdown_scheduler():
+        scheduler.shutdown()
+        logger.info("Stopped Scheduler")
+    return scheduler
+
+def add_cleanup_job(scheduler, config, cleanup_func):
+    if scheduler:
+        scheduler.add_job(cleanup_func, trigger='interval', seconds=int(config.cleanup.cleanup_interval_seconds))

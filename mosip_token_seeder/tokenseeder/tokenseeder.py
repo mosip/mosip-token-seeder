@@ -1,9 +1,11 @@
 import os
 import json
+import datetime
 from logging import Logger
 from queue import Queue
 from threading import Thread
 from sqlalchemy.orm import Session
+from sqlalchemy import Table
 
 from .download_handler import DownloadHandler
 
@@ -86,3 +88,24 @@ class TokenSeeder(Thread):
                         DownloadHandler(self.config, self.logger, req_id, output_type, session)
             except Exception as e:
                 self.logger.error('Token Seeder Error: %s', repr(e))
+
+    def cleanup_old_entries(self):
+        try:
+            exp_date_time = datetime.datetime.utcnow() - datetime.timedelta(seconds=float(self.config.cleanup.cleanup_expiry_seconds))
+            authtoken_request_table : Table = AuthTokenRequestRepository.__table__
+            authtoken_request_data_table : Table = AuthTokenRequestDataRepository.__table__
+            self.db_engine.execute(authtoken_request_table.delete().where(authtoken_request_table.c.cr_dtimes > exp_date_time))
+            self.db_engine.execute(authtoken_request_data_table.delete().where(authtoken_request_data_table.c.cr_dtimes > exp_date_time))
+        except Exception as e:
+            self.logger.error('Error deleting old entries from db: %s', repr(e))
+
+        # delete from stored files directory
+        self.logger.info('Cleaned up old entries in db. Starting stored_files cleanup')
+        try:
+            for f in os.listdir(self.config.root.output_stored_files_path):
+                f = os.path.join(self.config.root.output_stored_files_path, f)
+                if os.stat(f).st_mtime < exp_date_time.timestamp():
+                    if os.path.isfile(f):
+                        os.remove(f)
+        except Exception as e:
+            self.logger.error('Error deleting old files: %s', repr(e))

@@ -10,6 +10,11 @@ name_delimiter = ' '
 [authtoken]
 mandatory_validation_auth_fields = 'name,gender,dob,phoneNumber,emailId,fullAddress'
 
+[cleanup]
+enabled = true
+cleanup_interval_seconds = '21600'
+cleanup_expiry_seconds = '21600'
+
 [logging]
 log_file_name = "mosip_token_seeder.log"
 log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

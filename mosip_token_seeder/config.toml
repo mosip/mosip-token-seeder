@@ -27,7 +27,7 @@ password = ''
 random_password_length = 16
 generate_db_always = true
 generate_password_always = true
-print_password_on_startup = true
+print_password_on_startup = false
 
 
 [gunicorn]

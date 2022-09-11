@@ -36,7 +36,7 @@ class AuthTokenService:
         if not request.lang:
             language = self.config.root.default_lang_code
 
-        req_id = str(uuid.uuid4())
+        req_id = self.get_new_req_id()
 
         authtoken_request_entry = AuthTokenRequestRepository(
             auth_request_id=req_id,
@@ -86,7 +86,7 @@ class AuthTokenService:
         if not request.lang:
             language = self.config.root.default_lang_code
 
-        req_id = str(uuid.uuid4())
+        req_id = self.get_new_req_id()
 
         csv_header = None
 
@@ -150,7 +150,7 @@ class AuthTokenService:
         if not request.lang:
             language = self.config.root.default_lang_code
 
-        req_id = str(uuid.uuid4())
+        req_id = self.get_new_req_id()
 
         authtoken_request_entry = AuthTokenRequestRepository(
             auth_request_id=req_id,
@@ -213,3 +213,6 @@ class AuthTokenService:
         if not status.startswith('processed'):
             raise MOSIPTokenSeederNoException(
                 'ATS-REQ-017', 'Auth request not processed yet', 202)
+
+    def get_new_req_id(self):
+        return f'{self.config.docker.pod_id:02}' + str(uuid.uuid4())[2:]

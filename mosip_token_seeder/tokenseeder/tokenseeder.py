@@ -94,8 +94,8 @@ class TokenSeeder(Thread):
             exp_date_time = datetime.datetime.utcnow() - datetime.timedelta(seconds=float(self.config.cleanup.cleanup_expiry_seconds))
             authtoken_request_table : Table = AuthTokenRequestRepository.__table__
             authtoken_request_data_table : Table = AuthTokenRequestDataRepository.__table__
-            self.db_engine.execute(authtoken_request_table.delete().where(authtoken_request_table.c.cr_dtimes > exp_date_time))
-            self.db_engine.execute(authtoken_request_data_table.delete().where(authtoken_request_data_table.c.cr_dtimes > exp_date_time))
+            self.db_engine.execute(authtoken_request_table.delete().where(authtoken_request_table.c.cr_dtimes < exp_date_time))
+            self.db_engine.execute(authtoken_request_data_table.delete().where(authtoken_request_data_table.c.cr_dtimes < exp_date_time))
         except Exception as e:
             self.logger.error('Error deleting old entries from db: %s', repr(e))
 

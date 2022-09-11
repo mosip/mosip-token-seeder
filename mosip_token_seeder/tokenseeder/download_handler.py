@@ -5,6 +5,8 @@ import csv
 
 from sqlalchemy.orm import Session
 
+from .utils import NestedJsonUtils
+
 from mosip_token_seeder.repository import AuthTokenRequestDataRepository, AuthTokenRequestRepository
 
 class DownloadHandler:
@@ -20,6 +22,7 @@ class DownloadHandler:
             "errorCode": "__-error_code-__",
             "errorMessage": "__-error_message-__"
         }'''
+        self.nestedJsonUtils = NestedJsonUtils()
         if session:
             self.session = session
             self.handle()
@@ -105,7 +108,7 @@ class DownloadHandler:
         else:
             if each_request.auth_data_received:
                 each_input_received = json.loads(each_request.auth_data_received)
-                return each_input_received[var_name] if var_name in each_input_received else None
+                return self.nestedJsonUtils.extract_nested_value(var_name, each_input_received)
             else:
                 return None
 

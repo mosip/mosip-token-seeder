@@ -1,3 +1,5 @@
+import json
+
 from pydantic import BaseModel, validator
 from typing import List, Optional
 
@@ -12,6 +14,7 @@ class AuthTokenBaseRequest(BaseModel):
     deliverytype: str
     mapping: MapperFields = MapperFields()
     lang: Optional[str]
+    outputFormat : Optional[str] = ''
 
     @validator('output', pre=True)
     def output_valid(cls, value):
@@ -32,6 +35,13 @@ class AuthTokenBaseRequest(BaseModel):
             raise MOSIPTokenSeederException('ATS-REQ-102','delivery type is not mentioned')
         if value not in supported_delivery_types:
             raise MOSIPTokenSeederException('ATS-REQ-102','delivery type is not supported')
+        return value
+
+    @validator('outputFormat', pre=True)
+    def output_format_valid(cls, value):
+        if value:
+            try: json.loads(value)
+            except: raise MOSIPTokenSeederException('ATS-REQ-102','outputFormat is not a valid json string')
         return value
 
 class AuthTokenRequest(AuthTokenBaseRequest):

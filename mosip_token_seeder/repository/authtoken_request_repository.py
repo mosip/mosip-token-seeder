@@ -14,6 +14,7 @@ class AuthTokenRequestRepository(Base, ExtendedBase):
     number_total = Column(Integer, nullable=False)
     input_type = Column(String, nullable=False)
     output_type = Column(String, nullable=False)
+    output_format = Column(String)
     delivery_type = Column(String, nullable=False)
     status = Column(String)
     cr_dtimes = Column(DateTime, nullable=False, default=datetime.utcnow)

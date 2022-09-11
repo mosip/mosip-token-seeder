@@ -43,6 +43,7 @@ class AuthTokenService:
             number_total=len(request.authdata),
             input_type='json',
             output_type=request.output,
+            output_format=request.outputFormat,
             delivery_type=request.deliverytype,
             status='submitted'
         )
@@ -125,6 +126,7 @@ class AuthTokenService:
             number_total=line_no,
             input_type='csv',
             output_type=request.output,
+            output_format=request.outputFormat,
             delivery_type=request.deliverytype,
             status='submitted',
             number_error=error_count,
@@ -157,6 +159,7 @@ class AuthTokenService:
             number_total=len(auth_request_data),
             input_type='json',
             output_type=request.output,
+            output_format=request.outputFormat,
             delivery_type=request.deliverytype,
             status='submitted'
         )

@@ -83,9 +83,10 @@ class TokenSeeder(Thread):
                     auth_request.status = 'processed' if auth_request.number_error == 0 else 'processed_with_errors'
                     auth_request.update_commit_timestamp(session)
                     output_type = auth_request.output_type
+                    output_format = auth_request.output_format
                     delivery_type = auth_request.delivery_type
                     if delivery_type == 'download':
-                        DownloadHandler(self.config, self.logger, req_id, output_type, session)
+                        DownloadHandler(self.config, self.logger, req_id, output_type, output_format, session)
             except Exception as e:
                 self.logger.error('Token Seeder Error: %s', repr(e))
 

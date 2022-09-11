@@ -8,11 +8,18 @@ from sqlalchemy.orm import Session
 from mosip_token_seeder.repository import AuthTokenRequestDataRepository, AuthTokenRequestRepository
 
 class DownloadHandler:
-    def __init__(self, config, logger, req_id, output_type, session=None, db_engine=None):
+    def __init__(self, config, logger, req_id, output_type, output_format=None, session=None, db_engine=None):
         self.config = config
         self.logger = logger
         self.req_id = req_id
         self.output_type = output_type
+        self.output_format = output_format if output_format else '''{
+            "vid": "__-vid-__",
+            "token": "__-token-__",
+            "status": "__-status-__",
+            "errorCode": "__-error_code-__",
+            "errorMessage": "__-error_message-__"
+        }'''
         if session:
             self.session = session
             self.handle()
@@ -20,7 +27,7 @@ class DownloadHandler:
             with Session(db_engine) as session:
                 self.session = session
                 self.handle()
-    
+
     def handle(self):
         try:
             if self.output_type == 'json':
@@ -44,7 +51,7 @@ class DownloadHandler:
             auth_request : AuthTokenRequestRepository = AuthTokenRequestRepository.get_from_session(self.session, self.req_id)
             auth_request.status = error_status
             auth_request.update_commit_timestamp(self.session)
-    
+
     def write_request_output_to_json(self):
         if not os.path.isdir(self.config.root.output_stored_files_path):
             os.mkdir(self.config.root.output_stored_files_path)
@@ -52,20 +59,16 @@ class DownloadHandler:
             f.write('[')
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
                 f.write(',') if i!=0 else None
-                each_err = each_request.error_code
-                each_err_message = each_request.error_message
-                if each_request.auth_data_input:
-                    each_vid = json.loads(each_request.auth_data_input)['vid']
-                else:
-                    each_received = json.loads(each_request.auth_data_received)
-                    each_vid = each_received['vid'] if 'vid' in each_received else None
-                json.dump({
-                    'vid': each_vid,
-                    'token': each_request.token,
-                    'status': each_request.status,
-                    'errorCode': each_err if each_err else None,
-                    'errorMessage': each_err_message if each_err_message else None,
-                },f)
+                json.dump(
+                    json.loads(
+                        self.format_output_with_vars(
+                            self.output_format,
+                            each_request
+                        )
+                    ),
+                    f
+                )
+
             f.write(']')
     
     def write_request_output_to_csv(self):
@@ -73,19 +76,54 @@ class DownloadHandler:
             os.mkdir(self.config.root.output_stored_files_path)
         with open(os.path.join(self.config.root.output_stored_files_path, self.req_id), 'w+') as f:
             csvwriter = csv.writer(f)
-            csvwriter.writerow(['vid', 'token', 'status', 'errorCode', 'errorMessage'])
+            output_format_dict : dict = json.loads(self.output_format)
+            csvwriter.writerow(list(output_format_dict.keys()))
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
-                each_err = each_request.error_code
-                each_err_message = each_request.error_message
-                if each_request.auth_data_input:
-                    each_vid = json.loads(each_request.auth_data_input)['vid']
-                else:
-                    each_received = json.loads(each_request.auth_data_received)
-                    each_vid = each_received['vid'] if 'vid' in each_received else None
                 csvwriter.writerow([
-                    each_vid,
-                    each_request.token,
-                    each_request.status,
-                    each_err if each_err else None,
-                    each_err_message if each_err_message else None,
+                    self.format_output_with_vars(
+                        json.dumps(cell) if isinstance(cell, dict) else str(cell) if cell!=None else None,
+                        each_request
+                    ) for cell in output_format_dict.values()
                 ])
+
+    def get_item_for_output(self, var_name : str, each_request : AuthTokenRequestDataRepository):
+        if var_name=='vid':
+            if each_request.auth_data_input:
+                each_vid = json.loads(each_request.auth_data_input)['vid']
+            else:
+                each_received = json.loads(each_request.auth_data_received)
+                each_vid = each_received['vid'] if 'vid' in each_received else None
+            return each_vid
+        elif var_name=='status':
+            return each_request.status
+        elif var_name=='token':
+            return each_request.token
+        elif var_name=='error_code':
+            return each_request.error_code
+        elif var_name=='error_message':
+            return each_request.error_message
+        else:
+            if each_request.auth_data_received:
+                each_input_received = json.loads(each_request.auth_data_received)
+                return each_input_received[var_name] if var_name in each_input_received else None
+            else:
+                return None
+
+    def format_output_with_vars(self, output_format, request):
+        if output_format=='' or output_format==None:
+            return None
+        output = str(output_format)
+        while self.config.root.output_format_var_starts in output:
+            var_name = output[
+                output.index(self.config.root.output_format_var_starts)+
+                len(self.config.root.output_format_var_starts):
+                output.index(self.config.root.output_format_var_ends)
+            ]
+            var_value = self.get_item_for_output(var_name, request)
+            output = output.replace(
+                self.config.root.output_format_var_starts+
+                var_name+
+                self.config.root.output_format_var_ends,
+                var_value if var_value else ''
+            )
+        return output

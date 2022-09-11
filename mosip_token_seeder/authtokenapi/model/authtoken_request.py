@@ -38,10 +38,15 @@ class AuthTokenBaseRequest(BaseModel):
         return value
 
     @validator('outputFormat', pre=True)
-    def output_format_valid(cls, value):
+    def output_format_valid(cls, value, values):
         if value:
-            try: json.loads(value)
-            except: raise MOSIPTokenSeederException('ATS-REQ-102','outputFormat is not a valid json string')
+            value_dict = None
+            try:
+                value_dict = json.loads(value)
+            except:
+                raise MOSIPTokenSeederException('ATS-REQ-102','outputFormat is not a valid json string')
+            if isinstance(value_dict, list) and 'output' in values and values['output'] == 'csv':
+                raise MOSIPTokenSeederException('ATS-REQ-102','For csv output, outputFormat cannot be list. Has to be json')
         return value
 
 class AuthTokenRequest(AuthTokenBaseRequest):

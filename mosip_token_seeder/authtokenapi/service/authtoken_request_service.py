@@ -56,7 +56,7 @@ class AuthTokenService:
                 auth_request_line_no=line_no,
                 auth_data_received=json.dumps(authdata),
             )
-            valid_authdata, error_code = self.mapping_service.validate_auth_data(
+            valid_authdata, error_code, error_message= self.mapping_service.validate_auth_data(
                 authdata, request.mapping, language)
             if valid_authdata:
                 authdata_model.auth_data_input = valid_authdata.json()
@@ -65,6 +65,7 @@ class AuthTokenService:
                 error_count += 1
                 authdata_model.status = 'invalid'
                 authdata_model.error_code = error_code
+                authdata_model.error_message = error_message
             authdata_model.add(self.db_engine)
 
         authtoken_request_entry.number_error = error_count
@@ -114,7 +115,7 @@ class AuthTokenService:
                 auth_request_line_no=line_no,
                 auth_data_received=json.dumps(authdata),
             )
-            valid_authdata, error_code = self.mapping_service.validate_auth_data(
+            valid_authdata, error_code, error_message = self.mapping_service.validate_auth_data(
                 authdata, request.mapping, language)
             if valid_authdata:
                 authdata_model.auth_data_input = valid_authdata.json()
@@ -123,6 +124,7 @@ class AuthTokenService:
                 error_count += 1
                 authdata_model.status = 'invalid'
                 authdata_model.error_code = error_code
+                authdata_model.error_message = error_message
             authdata_model.add(self.db_engine)
 
         authtoken_request_entry = AuthTokenRequestRepository(
@@ -175,7 +177,7 @@ class AuthTokenService:
                 auth_request_line_no=line_no,
                 auth_data_received=json.dumps(authdata),
             )
-            valid_authdata, error_code = self.mapping_service.validate_auth_data(
+            valid_authdata, error_code, error_message = self.mapping_service.validate_auth_data(
                 authdata, request.mapping, language)
             if valid_authdata:
                 authdata_model.auth_data_input = valid_authdata.json()
@@ -184,6 +186,7 @@ class AuthTokenService:
                 error_count += 1
                 authdata_model.status = 'invalid'
                 authdata_model.error_code = error_code
+                authdata_model.error_message = error_message
             authdata_model.add(self.db_engine)
 
         authtoken_request_entry.number_error = error_count

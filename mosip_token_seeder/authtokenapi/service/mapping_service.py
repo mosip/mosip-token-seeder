@@ -28,7 +28,7 @@ class MappingService:
             final_dict['vid'] = self.extract_nested_value(mapping.vid, authdata, mapping)    
         else :    
             if mapping.vid not in authdata:
-                return None, 'ATS-REQ-009'
+                return None, 'ATS-REQ-009', 'vid or its mapping not present'
             # if len(authdata[mapping.vid]) <= 16 and len(authdata[mapping.vid]) >= 19:
             #     return None, 'ATS-REQ-002'
             final_dict['vid'] = authdata[mapping.vid]
@@ -41,9 +41,9 @@ class MappingService:
                     name_arr.append(name_val )
             else:
                 if name_var not in authdata:
-                    return None, 'ATS-REQ-010'
+                    return None, 'ATS-REQ-010', 'name or its mapping not present'
                 if len(authdata[name_var]) == 0:
-                    return None, 'ATS-REQ-003'
+                    return None, 'ATS-REQ-003', 'name is not provided'
                 name_arr.append(authdata[name_var])
 
         final_dict['name'] = [{'language':language,'value': self.config.root.name_delimiter.join(name_arr)}]
@@ -53,9 +53,9 @@ class MappingService:
             final_dict['gender'] = [{'language':language,'value': self.extract_nested_value(mapping.gender, authdata, mapping) }]   
         else :
             if mapping.gender not in authdata:
-                return None, 'ATS-REQ-011'
+                return None, 'ATS-REQ-011', 'gender or its mapping not present'
             if len(authdata[mapping.gender]) == 0:
-                return None, 'ATS-REQ-004'
+                return None, 'ATS-REQ-004', 'gender is empty'
             # if len(authdata[mapping.gender]) > 256:
             #     return None, 'ATS-REQ-003'
             # if authdata[mapping.gender].lower() not in ['male','female','others']:
@@ -66,9 +66,9 @@ class MappingService:
             final_dict['dob'] = self.extract_nested_value(mapping.dob, authdata, mapping) 
         else:
             if mapping.dob not in authdata:
-                return None, 'ATS-REQ-012'
+                return None, 'ATS-REQ-012', 'dateOfBirth or its mapping not present'
             if len(authdata[mapping.dob]) == 0:
-                return False, 'ATS-REQ-006'
+                return False, 'ATS-REQ-006', 'date of birth is empty'
             # try:
             #     if bool(datetime.strptime(authdata[mapping.dob], '%Y/%m/%d')) == False:
             #         return None, 'ATS-REQ-007'
@@ -98,9 +98,9 @@ class MappingService:
                     addr_arr.append(addr_val)
             else:
                 if addr not in authdata:
-                    return None, 'ATS-REQ-015'
+                    return None, 'ATS-REQ-015', 'fullAddress or its mapping not present'
                 if len(authdata[addr]) == 0:
-                    return False, 'ATS-REQ-008'
+                    return False, 'ATS-REQ-008', 'address is empty'
                 addr_arr.append(authdata[addr])
         final_dict['fullAddress'] = [{'language':language,'value': self.config.root.full_address_delimiter.join(addr_arr)}]
 
@@ -110,7 +110,7 @@ class MappingService:
         final_dict = {}
         len_of_authdata = len(authdata)
         if mapping.vid >= len_of_authdata:
-            return None, 'ATS-REQ-009'
+            return None, 'ATS-REQ-009', 'vid or its mapping not present'
         # if len(authdata[mapping.vid]) <= 16 and len(authdata[mapping.vid]) >= 19:
         #     return None, 'ATS-REQ-002'
         final_dict['vid'] = authdata[mapping.vid]
@@ -118,16 +118,16 @@ class MappingService:
         name_arr = []
         for name_index in mapping.name:
             if name_index >= len_of_authdata:
-                return None, 'ATS-REQ-010'
+                return None, 'ATS-REQ-010', 'name or its mapping not present'
             if len(authdata[name_index]) == 0:
-                return None, 'ATS-REQ-003'
+                return None, 'ATS-REQ-003', 'name is not provided'
             name_arr.append(authdata[name_index])
         final_dict['name'] = [{'language':language,'value': self.config.root.name_delimiter.join(name_arr)}]
 
         if mapping.gender >= len_of_authdata:
-            return None, 'ATS-REQ-011'
+            return None, 'ATS-REQ-011', 'gender or its mapping not present'
         if len(authdata[mapping.gender]) == 0:
-            return None, 'ATS-REQ-004'
+            return None, 'ATS-REQ-004', 'gender is empty'
         # if len(authdata[mapping.gender]) > 256:
         #     return None, 'ATS-REQ-003'
         # if authdata[mapping.gender].lower() not in ['male','female','others']:
@@ -135,9 +135,9 @@ class MappingService:
         final_dict['gender'] = [{'language':language,'value': authdata[mapping.gender]}]
 
         if mapping.dob >= len_of_authdata:
-            return None, 'ATS-REQ-012'
+            return None, 'ATS-REQ-012', 'dateOfBirth or its mapping not present'
         if len(authdata[mapping.dob]) == 0:
-            return False, 'ATS-REQ-006'
+            return False, 'ATS-REQ-006', 'date of birth is empty'
         # try:
         #     if bool(datetime.strptime(authdata[mapping.dob], '%Y/%m/%d')) == False:
         #         return None, 'ATS-REQ-007'
@@ -146,19 +146,19 @@ class MappingService:
         final_dict['dob'] = authdata[mapping.dob]
         
         if mapping.phoneNumber >= len_of_authdata:
-            return None, 'ATS-REQ-013'
+            return None, 'ATS-REQ-013', 'phoneNumber or its mapping not present'
         final_dict['phoneNumber'] = authdata[mapping.phoneNumber]
 
         if mapping.emailId >= len_of_authdata:
-            return None, 'ATS-REQ-014'
+            return None, 'ATS-REQ-014', 'emailId or its mapping not present'
         final_dict['emailId'] = authdata[mapping.emailId]
 
         addr_arr = []
         for addr_index in mapping.fullAddress:
             if addr_index >= len_of_authdata:
-                return None, 'ATS-REQ-015'
+                return None, 'ATS-REQ-015', 'fullAddress or its mapping not present'
             if len(authdata[addr_index]) == 0:
-                return False, 'ATS-REQ-008'
+                return False, 'ATS-REQ-008', 'address is empty'
             addr_arr.append(authdata[addr_index])
         final_dict['fullAddress'] = [{'language':language,'value': self.config.root.full_address_delimiter.join(addr_arr)}]
 

@@ -39,7 +39,6 @@ class ODKPullService:
         response_json_string = response.read().decode()
         auth_data = json.loads(response_json_string)
         token = auth_data['token']
-
         if config.odataurl is not None and len(config.odataurl):
             odata_url = config.odataurl + "/Submissions"
         else:
@@ -52,18 +51,22 @@ class ODKPullService:
                     'ATS-REQ-22', 'no odk form id provided')
 
         service_url = 'https://{domain}/{version}/projects/{projectid}/forms/{formid}.svc/Submissions'
+        service_url = service_url.format(domain=domain, version=version,
+                           projectid=config.projectid, formid=config.formid)
+        odata_url = service_url
         if config.startdate is not None and len(config.startdate) and config.enddate is not None and len(config.enddate):
             filter = '?$filter=__system/submissionDate%20gt%20' + config.startdate + \
                 '%20and%20__system/submissionDate%20lt%20' + config.enddate
             odata_url = odata_url + filter
 
-        service_url.format(domain=domain, version=version,
-                           projectid=config.projectid, formid=config.formid)
+        
         
         auth_header = {'Authorization': 'Bearer ' + token}
+        print("odata_url",odata_url)
         connection.request(method="GET", url=odata_url, headers=auth_header)
         response = connection.getresponse()
         response_json_string = response.read().decode()
+        print("Output",response_json_string)
         submissions = json.loads(response_json_string)
         if 'value' in submissions:
             if submissions['value'] is None  or  len(submissions['value']) == 0 :

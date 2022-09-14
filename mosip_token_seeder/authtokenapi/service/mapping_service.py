@@ -84,7 +84,7 @@ class MappingService:
                 final_dict['phoneNumber'] = authdata[mapping.phoneNumber]
 
         if mapping.emailId.find('.') != -1 :
-                final_dict['emailId'] = self.extract_nested_value(mapping.emailId, authdata, mapping) 
+            final_dict['emailId'] = self.extract_nested_value(mapping.emailId, authdata, mapping) 
         else :
             if mapping.emailId  in authdata:
                 # return None, 'ATS-REQ-014' // removed email validation

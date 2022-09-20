@@ -62,11 +62,9 @@ class ODKPullService:
         
         
         auth_header = {'Authorization': 'Bearer ' + token}
-        print("odata_url",odata_url)
         connection.request(method="GET", url=odata_url, headers=auth_header)
         response = connection.getresponse()
         response_json_string = response.read().decode()
-        print("Output",response_json_string)
         submissions = json.loads(response_json_string)
         if 'value' in submissions:
             if submissions['value'] is None  or  len(submissions['value']) == 0 :

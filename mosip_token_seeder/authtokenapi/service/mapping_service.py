@@ -104,7 +104,7 @@ class MappingService:
                 addr_arr.append(authdata[addr])
         final_dict['fullAddress'] = [{'language':language,'value': self.config.root.full_address_delimiter.join(addr_arr)}]
 
-        return AuthTokenBaseModel(**final_dict),""
+        return AuthTokenBaseModel(**final_dict),'', ''
 
     def validate_auth_data_indices_mapper(self, authdata : list, mapping: MapperFieldIndices, language):
         final_dict = {}
@@ -162,7 +162,7 @@ class MappingService:
             addr_arr.append(authdata[addr_index])
         final_dict['fullAddress'] = [{'language':language,'value': self.config.root.full_address_delimiter.join(addr_arr)}]
 
-        return AuthTokenBaseModel(**final_dict),""
+        return AuthTokenBaseModel(**final_dict),'', ''
 
     def extract_nested_value(self, mapping_field, authdata : dict, mapping: MapperFields) :
         # this method traverses the nested json to find the value based on the mapping field provided as per template (refer the api documentation) 

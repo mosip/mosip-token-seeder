@@ -26,7 +26,7 @@ class AuthTokenBaseRequest(BaseModel):
         return value
     
     @validator('deliverytype', pre=True)
-    def delivery_valid(cls, value, values):
+    def delivery_valid(cls, value):
         if not value:
             raise MOSIPTokenSeederException('ATS-REQ-102','delivery type is not mentioned')
         if value not in supported_delivery_types:
@@ -59,7 +59,7 @@ class AuthTokenRequest(AuthTokenBaseRequest):
     authdata: Optional[List[dict]]
 
     @validator('authdata')
-    def auth_data_validate(cls, value, values):
+    def auth_data_validate(cls, value):
         if not value:
             raise MOSIPTokenSeederException('ATS-REQ-102','authdata missing')
         return value

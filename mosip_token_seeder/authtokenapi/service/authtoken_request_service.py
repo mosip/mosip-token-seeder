@@ -45,6 +45,7 @@ class AuthTokenService:
             output_type=request.output,
             output_format=request.outputFormat,
             delivery_type=request.deliverytype,
+            callback_props=request.callbackProperties.json() if request.callbackProperties else '',
             status='submitted'
         )
 
@@ -128,6 +129,7 @@ class AuthTokenService:
             output_type=request.output,
             output_format=request.outputFormat,
             delivery_type=request.deliverytype,
+            callback_props=request.callbackProperties.json() if request.callbackProperties else '',
             status='submitted',
             number_error=error_count,
         )
@@ -161,6 +163,7 @@ class AuthTokenService:
             output_type=request.output,
             output_format=request.outputFormat,
             delivery_type=request.deliverytype,
+            callback_props=request.callbackProperties.json() if request.callbackProperties else '',
             status='submitted'
         )
 

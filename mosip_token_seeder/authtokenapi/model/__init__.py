@@ -1,3 +1,4 @@
+from .callback_props import CallbackProperties
 from .authtoken_base_model import AuthTokenBaseModel, MapperFields
 from .authtoken_sync_request import AuthTokenHttpRequestSync, AuthTokenRequestSync
 from .authtoken_request import AuthTokenBaseRequest, AuthTokenRequest

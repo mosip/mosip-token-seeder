@@ -7,7 +7,9 @@ from threading import Thread
 from sqlalchemy.orm import Session
 from sqlalchemy import Table
 
+from .model import CallbackProperties
 from .download_handler import DownloadHandler
+from .callback_handler import CallbackHandler
 
 from mosip_token_seeder.authenticator import MOSIPAuthenticator
 from mosip_token_seeder.authenticator.exceptions import AuthenticatorException
@@ -87,6 +89,9 @@ class TokenSeeder(Thread):
                     delivery_type = auth_request.delivery_type
                     if delivery_type == 'download':
                         DownloadHandler(self.config, self.logger, req_id, output_type, output_format, session)
+                    elif delivery_type == 'callback':
+                        callback_props = CallbackProperties.parse_raw(auth_request.callback_props)
+                        CallbackHandler(self.config, self.logger, req_id, output_type, callback_props, output_format, session)
             except Exception as e:
                 self.logger.error('Token Seeder Error: %s', repr(e))
 

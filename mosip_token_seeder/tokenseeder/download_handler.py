@@ -5,7 +5,7 @@ import csv
 
 from sqlalchemy.orm import Session
 
-from .utils import NestedJsonUtils
+from .utils import OutputFormatter
 
 from mosip_token_seeder.repository import AuthTokenRequestDataRepository, AuthTokenRequestRepository
 
@@ -22,7 +22,7 @@ class DownloadHandler:
             "errorCode": "__-error_code-__",
             "errorMessage": "__-error_message-__"
         }'''
-        self.nestedJsonUtils = NestedJsonUtils()
+        self.output_formatter_utils = OutputFormatter(config)
         if session:
             self.session = session
             self.handle()
@@ -64,7 +64,7 @@ class DownloadHandler:
                 f.write(',') if i!=0 else None
                 json.dump(
                     json.loads(
-                        self.format_output_with_vars(
+                        self.output_formatter_utils.format_output_with_vars(
                             self.output_format,
                             each_request
                         )
@@ -83,50 +83,8 @@ class DownloadHandler:
             csvwriter.writerow(list(output_format_dict.keys()))
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
                 csvwriter.writerow([
-                    self.format_output_with_vars(
+                    self.output_formatter_utils.format_output_with_vars(
                         json.dumps(cell) if isinstance(cell, dict) else str(cell) if cell!=None else None,
                         each_request
                     ) for cell in output_format_dict.values()
                 ])
-
-    def get_item_for_output(self, var_name : str, each_request : AuthTokenRequestDataRepository):
-        if var_name=='vid':
-            if each_request.auth_data_input:
-                each_vid = json.loads(each_request.auth_data_input)['vid']
-            else:
-                each_received = json.loads(each_request.auth_data_received)
-                each_vid = each_received['vid'] if 'vid' in each_received else None
-            return each_vid
-        elif var_name=='status':
-            return each_request.status
-        elif var_name=='token':
-            return each_request.token
-        elif var_name=='error_code':
-            return each_request.error_code
-        elif var_name=='error_message':
-            return each_request.error_message
-        else:
-            if each_request.auth_data_received:
-                each_input_received = json.loads(each_request.auth_data_received)
-                return self.nestedJsonUtils.extract_nested_value(var_name, each_input_received)
-            else:
-                return None
-
-    def format_output_with_vars(self, output_format, request):
-        if output_format=='' or output_format==None:
-            return None
-        output = str(output_format)
-        while self.config.root.output_format_var_starts in output:
-            var_name = output[
-                output.index(self.config.root.output_format_var_starts)+
-                len(self.config.root.output_format_var_starts):
-                output.index(self.config.root.output_format_var_ends)
-            ]
-            var_value = self.get_item_for_output(var_name, request)
-            output = output.replace(
-                self.config.root.output_format_var_starts+
-                var_name+
-                self.config.root.output_format_var_ends,
-                var_value if var_value else ''
-            )
-        return output

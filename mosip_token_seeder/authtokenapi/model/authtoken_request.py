@@ -7,7 +7,7 @@ from ..exception import MOSIPTokenSeederException
 from . import MapperFields
 
 supported_output_types = ['json','csv']
-supported_delivery_types = ['download','sync','callback']
+supported_delivery_types = ['download','callback']
 
 class AuthTokenBaseRequest(BaseModel):
     output: str
@@ -26,11 +26,6 @@ class AuthTokenBaseRequest(BaseModel):
     
     @validator('deliverytype', pre=True)
     def delivery_valid(cls, value, values):
-        if value == 'sync':
-            if cls is not AuthTokenRequest:
-                raise MOSIPTokenSeederException('ATS-REQ-102','Only json input supported for sync delivery')
-            if values['output']!='json':
-                raise MOSIPTokenSeederException('ATS-REQ-102','Only json output supported for sync delivery')
         if not value:
             raise MOSIPTokenSeederException('ATS-REQ-102','delivery type is not mentioned')
         if value not in supported_delivery_types:
@@ -49,14 +44,21 @@ class AuthTokenBaseRequest(BaseModel):
                 raise MOSIPTokenSeederException('ATS-REQ-102','For csv output, outputFormat cannot be list. Has to be json')
         return value
 
+    @validator('callbackProperties', pre=True)
+    def filename_valid(cls, value, values):
+        if values['deliverytype'] != 'callback':
+            return None
+        if values['output'] == 'csv' and not value['requestFileName']:
+            raise MOSIPTokenSeederException('ATS-REQ-102','callback -> requestFileName should be valid for csv output')
+        if values['output'] == 'csv' and not value['callInBulk']:
+            raise MOSIPTokenSeederException('ATS-REQ-102','callback -> callInBulk cannot be false for csv output')
+        return value
+
 class AuthTokenRequest(AuthTokenBaseRequest):
     authdata: Optional[List[dict]]
 
     @validator('authdata')
     def auth_data_validate(cls, value, values):
-        if values['deliverytype'] == 'sync':
-            if len(value)>1:
-                raise MOSIPTokenSeederException('ATS-REQ-102','Only one authdata entry can be supplied for sync delivery')
         if not value:
             raise MOSIPTokenSeederException('ATS-REQ-102','authdata missing')
         return value

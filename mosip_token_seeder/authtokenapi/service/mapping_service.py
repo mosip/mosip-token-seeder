@@ -97,7 +97,7 @@ class MappingService:
         if authdata_addr:
             final_dict['fullAddress'] = [{'language':language,'value': authdata_addr}]
 
-        return AuthTokenBaseModel(**final_dict),""
+        return AuthTokenBaseModel(**final_dict),'', ''
 
     def extract_nested_value(self, nested_field, data : dict):
         # this method traverses the nested json to find the value based on the nested field provided

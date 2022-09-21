@@ -4,7 +4,7 @@ from datetime import datetime
 from logging import Logger
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
+from fastapi.exceptions import RequestValidationError
 
 from ..model import BaseHttpResponse, BaseError
 from . import MOSIPTokenSeederException, MOSIPTokenSeederNoException
@@ -38,8 +38,8 @@ class RequestValidationErrorHandler:
             res_dict = json.loads(res.json())
             return JSONResponse(content=res_dict, status_code=status_code)
         
-        @app.exception_handler(ValidationError)
-        async def validation_exception_handler(request, exc : ValidationError):
+        @app.exception_handler(RequestValidationError)
+        async def validation_exception_handler(request, exc : RequestValidationError):
             self.logger.error('Handling exception: %s' % repr(exc))
             errors = []
             for err in exc.errors():

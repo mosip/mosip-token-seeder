@@ -1,4 +1,5 @@
 from .authtoken_base_model import AuthTokenBaseModel, MapperFields
+from .authtoken_sync_request import AuthTokenHttpRequestSync, AuthTokenRequestSync
 from .authtoken_request import AuthTokenBaseRequest, AuthTokenRequest
 from .authtoken_http_request import AuthTokenHttpRequest
 from .authtoken_csv_request import AuthTokenCsvRequestWithHeader, AuthTokenCsvHttpRequest

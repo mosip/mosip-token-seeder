@@ -29,6 +29,8 @@ class MappingService:
         else :    
             if mapping.vid not in authdata:
                 return None, 'ATS-REQ-009', 'vid or its mapping not present'
+            if len(authdata[mapping.vid]) == 0:
+                return None, 'ATS-REQ-002', 'invalid vid construct'
             # if len(authdata[mapping.vid]) <= 16 and len(authdata[mapping.vid]) >= 19:
             #     return None, 'ATS-REQ-002'
             final_dict['vid'] = authdata[mapping.vid]

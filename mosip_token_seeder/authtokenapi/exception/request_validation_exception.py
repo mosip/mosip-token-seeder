@@ -27,6 +27,7 @@ class RequestValidationErrorHandler:
                 status_code = 400
                 response = None
             res = BaseHttpResponse(
+                version=self.config.root.version,
                 errors=[
                     BaseError(
                         errorCode=code,
@@ -48,6 +49,7 @@ class RequestValidationErrorHandler:
                     errorMessage='%s. %s. %s' % ('->'.join([str(i) for i in err['loc']]), str(err['type']), str(err['msg']))
                 ))
             res = BaseHttpResponse(
+                version=self.config.root.version,
                 errors=errors,
                 response=None
             )
@@ -65,6 +67,7 @@ class RequestValidationErrorHandler:
                 code = 'ATS-REQ-100'
                 message = l[0]
             res = BaseHttpResponse(
+                version=self.config.root.version,
                 errors=[
                     BaseError(
                         errorCode=code,

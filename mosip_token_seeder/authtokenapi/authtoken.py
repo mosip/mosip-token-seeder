@@ -12,6 +12,7 @@ from .model import AuthTokenHttpRequest, AuthTokenCsvHttpRequest, BaseHttpRespon
 class AuthTokenApi:
     def __init__(self, app, config, logger, request_id_queue):
         self.authtoken_service = AuthTokenService(config, logger, request_id_queue)
+        self.config = config
 
         @app.post(config.root.api_path_prefix + "authtoken/json", response_model=BaseHttpResponse, responses={422:{'model': BaseHttpResponse}})
         async def authtoken_json(request : AuthTokenHttpRequest = None):
@@ -19,7 +20,7 @@ class AuthTokenApi:
                 raise MOSIPTokenSeederException('ATS-REQ-102', 'mission request body')
             ##call service to save the details.
             request_identifier = self.authtoken_service.save_authtoken_json(request.request)
-            return BaseHttpResponse(response={
+            return BaseHttpResponse(version=self.config.root.version, response={
                 'request_identifier': request_identifier
             })
 
@@ -30,7 +31,7 @@ class AuthTokenApi:
             if not csv_file:
                 raise MOSIPTokenSeederException('ATS-REQ-102', 'Requires CSV file')
             request_identifier = self.authtoken_service.save_authtoken_csv(request.request, csv_file)
-            return BaseHttpResponse(response={
+            return BaseHttpResponse(version=self.config.root.version, response={
                 'request_identifier': request_identifier
             })
         
@@ -42,6 +43,6 @@ class AuthTokenApi:
             #     raise MOSIPTokenSeederException('ATS-REQ-102', 'Missing request body.')
            
             request_identifier = self.authtoken_service.save_authtoken_odk(request.request)
-            return BaseHttpResponse(response={
+            return BaseHttpResponse(version=self.config.root.version, response={
                 'request_identifier': request_identifier
             })

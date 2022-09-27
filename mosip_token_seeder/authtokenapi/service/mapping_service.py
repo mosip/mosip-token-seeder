@@ -25,9 +25,14 @@ class MappingService:
         final_dict = {}
         
         if mapping.vid.find('.') !=-1:                                                  
-            final_dict['vid'] = self.extract_nested_value(mapping.vid, authdata, mapping)    
+            nest_value = self.extract_nested_value(mapping.vid, authdata, mapping)
+            if not nest_value:
+                return None, 'ATS-REQ-009', 'vid or its mapping not present'
+            final_dict['vid'] = nest_value
         else :    
             if mapping.vid not in authdata:
+                return None, 'ATS-REQ-009', 'vid or its mapping not present'
+            if len(authdata[mapping.vid]) == 0:
                 return None, 'ATS-REQ-009', 'vid or its mapping not present'
             # if len(authdata[mapping.vid]) <= 16 and len(authdata[mapping.vid]) >= 19:
             #     return None, 'ATS-REQ-002'
@@ -35,7 +40,7 @@ class MappingService:
 
         name_arr = []
         for name_var in mapping.name:
-            if name_var.find('.') != -1 :                                               
+            if name_var.find('.') != -1 :                                          
                 name_val = self.extract_nested_value(name_var, authdata, mapping)
                 if name_val:
                     name_arr.append(name_val )
@@ -45,12 +50,16 @@ class MappingService:
                 if len(authdata[name_var]) == 0:
                     return None, 'ATS-REQ-003', 'name is not provided'
                 name_arr.append(authdata[name_var])
-
+        if len(name_arr) == 0:
+            return None, 'ATS-REQ-010', 'name or its mapping not present'
         final_dict['name'] = [{'language':language,'value': self.config.root.name_delimiter.join(name_arr)}]
 
 
         if mapping.gender.find('.') != -1 :                                             
-            final_dict['gender'] = [{'language':language,'value': self.extract_nested_value(mapping.gender, authdata, mapping) }]   
+            nest_value = [{'language':language,'value': self.extract_nested_value(mapping.gender, authdata, mapping) }]   
+            if not nest_value:
+                return None, 'ATS-REQ-011', 'gender or its mapping not present'
+            final_dict['gender'] = nest_value
         else :
             if mapping.gender not in authdata:
                 return None, 'ATS-REQ-011', 'gender or its mapping not present'
@@ -62,8 +71,11 @@ class MappingService:
             #     return None, 'ATS-REQ-005'
             final_dict['gender'] = [{'language':language,'value': authdata[mapping.gender]}]
 
-        if mapping.dob.find('.') != -1 :                                                
-            final_dict['dob'] = self.extract_nested_value(mapping.dob, authdata, mapping) 
+        if mapping.dob.find('.') != -1 :
+            nest_value = self.extract_nested_value(mapping.dob, authdata, mapping)
+            if not nest_value:
+                return None, 'ATS-REQ-012', 'dateOfBirth or its mapping not present'
+            final_dict['dob'] = nest_value
         else:
             if mapping.dob not in authdata:
                 return None, 'ATS-REQ-012', 'dateOfBirth or its mapping not present'
@@ -76,15 +88,19 @@ class MappingService:
             #     return None, 'ATS-REQ-007'
             final_dict['dob'] = authdata[mapping.dob]
             
-        if mapping.phoneNumber.find('.') != -1 : 
-            final_dict['phoneNumber'] = self.extract_nested_value(mapping.phoneNumber, authdata, mapping) 
+        if mapping.phoneNumber.find('.') != -1 :
+            nest_value = self.extract_nested_value(mapping.phoneNumber, authdata, mapping)
+            if nest_value:
+                final_dict['phoneNumber'] = nest_value
         else:
             if mapping.phoneNumber in authdata:
                 # return None, 'ATS-REQ-013' // removed phone validation
                 final_dict['phoneNumber'] = authdata[mapping.phoneNumber]
 
         if mapping.emailId.find('.') != -1 :
-            final_dict['emailId'] = self.extract_nested_value(mapping.emailId, authdata, mapping) 
+            nest_value = self.extract_nested_value(mapping.emailId, authdata, mapping)
+            if nest_value:
+                final_dict['emailId'] = nest_value
         else :
             if mapping.emailId  in authdata:
                 # return None, 'ATS-REQ-014' // removed email validation
@@ -102,6 +118,8 @@ class MappingService:
                 if len(authdata[addr]) == 0:
                     return False, 'ATS-REQ-008', 'address is empty'
                 addr_arr.append(authdata[addr])
+        if len(addr_arr) == 0:
+            return None, 'ATS-REQ-015', 'fullAddress or its mapping not present'
         final_dict['fullAddress'] = [{'language':language,'value': self.config.root.full_address_delimiter.join(addr_arr)}]
 
         return AuthTokenBaseModel(**final_dict),'', ''

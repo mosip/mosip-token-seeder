@@ -12,6 +12,6 @@ class StatusApi:
         async def fetch_status(id):
             # self.logger.info("Status api called. Req id :",id)
             status = self.authtoken_service.fetch_status(id)
-            return BaseHttpResponse(response={
+            return BaseHttpResponse(version=config.root.version, response={
                 'status': status
             })

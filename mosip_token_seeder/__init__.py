@@ -14,7 +14,7 @@ def init_app(config):
     """
     app = FastAPI(
         title="MOSIP Token Seeder",
-        version='0.1.0',
+        version=config.root.version,
         description=description,
         contact={
             "url": "https://mosip.io/contact.php",

@@ -29,7 +29,7 @@ class AuthTokenApi:
                 raise MOSIPTokenSeederException('ATS-REQ-102', 'mission request body')
             ##call service to save the details.
             request_identifier = self.authtoken_service.save_authtoken_json(request.request)
-            return BaseHttpResponse(response={
+            return BaseHttpResponse(version=self.config.root.version, response={
                 'request_identifier': request_identifier
             })
 
@@ -40,14 +40,14 @@ class AuthTokenApi:
             if not csv_file:
                 raise MOSIPTokenSeederException('ATS-REQ-102', 'Requires CSV file')
             request_identifier = self.authtoken_service.save_authtoken_csv(request.request, csv_file)
-            return BaseHttpResponse(response={
+            return BaseHttpResponse(version=self.config.root.version, response={
                 'request_identifier': request_identifier
             })
         
         @app.post(config.root.api_path_prefix + "authtoken/odk", response_model=BaseHttpResponse, responses={422:{'model': BaseHttpResponse}})
         async def authtoken_odk(request : AuthTokenODKHttpRequest = None):
             request_identifier = self.authtoken_service.save_authtoken_odk(request.request)
-            return BaseHttpResponse(response={
+            return BaseHttpResponse(version=self.config.root.version, response={
                 'request_identifier': request_identifier
             })
     def return_auth_token_sync(self, request : AuthTokenRequest):

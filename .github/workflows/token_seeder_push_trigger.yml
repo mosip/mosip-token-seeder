@@ -2,6 +2,7 @@ name: MOSIP Token Seeder Docker Build upon push
 
 on:
   push:
+    branches:
 
 jobs:
   token-seeder-build:

@@ -14,11 +14,11 @@ supported_delivery_types = ['download']
 
 class ODKConfig(BaseModel):
     print("ODKConfig called")
-    odataurl : str
+    odataurl : Optional[str]
     baseurl : str
     version : str = "v1"
-    projectid : str
-    formid : str
+    projectid : Optional[str]
+    formid : Optional[str]
     email : str
     password : str
     startdate : Optional[str]

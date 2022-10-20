@@ -50,10 +50,10 @@ class ODKPullService:
                 raise MOSIPTokenSeederException(
                     'ATS-REQ-22', 'no odk form id provided')
 
-        service_url = 'https://{domain}/{version}/projects/{projectid}/forms/{formid}.svc/Submissions'
-        service_url = service_url.format(domain=domain, version=version,
-                           projectid=config.projectid, formid=config.formid)
-        odata_url = service_url
+            service_url = 'https://{domain}/{version}/projects/{projectid}/forms/{formid}.svc/Submissions'
+            service_url = service_url.format(domain=domain, version=version,
+                            projectid=config.projectid, formid=config.formid)
+            odata_url = service_url
         if config.startdate is not None and len(config.startdate) and config.enddate is not None and len(config.enddate):
             filter = '?$filter=__system/submissionDate%20gt%20' + config.startdate + \
                 '%20and%20__system/submissionDate%20lt%20' + config.enddate

@@ -37,9 +37,8 @@ class TokenSeeder(Thread):
                     if auth_request.status == 'submitted':
                         auth_request.status = 'processing'
                         auth_request.update_commit_timestamp(session)
-                        data_line_no = auth_request.number_processed + auth_request.number_error
                         total_no = auth_request.number_total
-                        while data_line_no < total_no:
+                        for data_line_no in range(total_no):
                             auth_token_data_entry : AuthTokenRequestDataRepository = AuthTokenRequestDataRepository.get_from_session(session, req_id, data_line_no + 1)
                             if auth_token_data_entry.status == 'submitted':
                                 auth_token_data_entry.status = 'processing'
@@ -81,7 +80,8 @@ class TokenSeeder(Thread):
                                 auth_token_data_entry.update_timestamp()
                                 auth_request.update_timestamp()
                                 session.commit()
-                            data_line_no = auth_request.number_processed + auth_request.number_error
+                            else:
+                                pass
                     auth_request.status = 'processed' if auth_request.number_error == 0 else 'processed_with_errors'
                     auth_request.update_commit_timestamp(session)
                     output_type = auth_request.output_type

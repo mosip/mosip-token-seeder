@@ -11,7 +11,7 @@ output_format_var_starts = '__-'
 output_format_var_ends = '-__'
 
 [authtoken]
-mandatory_validation_auth_fields = 'name,gender,dob,phoneNumber,emailId,fullAddress'
+mandatory_validation_auth_fields = 'name,gender,dob,fullAddress'
 
 [cleanup]
 enabled = true

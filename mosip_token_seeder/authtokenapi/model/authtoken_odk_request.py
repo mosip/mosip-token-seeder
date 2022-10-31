@@ -30,7 +30,7 @@ class AuthTokenODKRequest(AuthTokenBaseRequest):
     # @validator('odkconfig')
     # def auth_data_validate(cls, value):
     #     if not value:
-    #         raise MOSIPTokenSeederException('ATS-REQ-102','authdata missing')
+    #         raise MOSIPTokenSeederException('ATS-REQ-102','invalid input. authdata missing')
     #     return value
     # pass
 

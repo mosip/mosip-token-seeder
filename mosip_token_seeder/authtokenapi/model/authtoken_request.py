@@ -20,17 +20,17 @@ class AuthTokenBaseRequest(BaseModel):
     @validator('output', pre=True)
     def output_valid(cls, value):
         if not value:
-            raise MOSIPTokenSeederException('ATS-REQ-102','output type is not mentioned')
+            raise MOSIPTokenSeederException('ATS-REQ-102','invalid input. output type is not mentioned')
         if value not in supported_output_types:
-            raise MOSIPTokenSeederException('ATS-REQ-102','output type is not supported')
+            raise MOSIPTokenSeederException('ATS-REQ-102','invalid input. output type is not supported')
         return value
     
     @validator('deliverytype', pre=True)
     def delivery_valid(cls, value):
         if not value:
-            raise MOSIPTokenSeederException('ATS-REQ-102','delivery type is not mentioned')
+            raise MOSIPTokenSeederException('ATS-REQ-102','invalid input. delivery type is not mentioned')
         if value not in supported_delivery_types:
-            raise MOSIPTokenSeederException('ATS-REQ-102','delivery type is not supported')
+            raise MOSIPTokenSeederException('ATS-REQ-102','invalid input. delivery type is not supported')
         return value
 
     @validator('outputFormat', pre=True)
@@ -61,5 +61,5 @@ class AuthTokenRequest(AuthTokenBaseRequest):
     @validator('authdata')
     def auth_data_validate(cls, value):
         if not value:
-            raise MOSIPTokenSeederException('ATS-REQ-102','authdata missing')
+            raise MOSIPTokenSeederException('ATS-REQ-102','invalid input. authdata missing')
         return value

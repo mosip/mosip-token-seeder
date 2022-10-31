@@ -19,14 +19,14 @@ class AuthTokenApi:
             @app.post(config.root.api_path_prefix + "authtoken/json", response_model=BaseHttpResponse, responses={422:{'model': BaseHttpResponse}})
             async def authtoken_json_sync(request : AuthTokenHttpRequestSync = None):
                 if not request:
-                    raise MOSIPTokenSeederException('ATS-REQ-102', 'mission request body')
+                    raise MOSIPTokenSeederException('ATS-REQ-102', 'invalid input. missing request body')
                 return self.return_auth_token_sync(request.request)
             return
 
         @app.post(config.root.api_path_prefix + "authtoken/json", response_model=BaseHttpResponse, responses={422:{'model': BaseHttpResponse}})
         async def authtoken_json(request : AuthTokenHttpRequest = None):
             if not request:
-                raise MOSIPTokenSeederException('ATS-REQ-102', 'mission request body')
+                raise MOSIPTokenSeederException('ATS-REQ-102', 'invalid input. missing request body')
             ##call service to save the details.
             request_identifier = self.authtoken_service.save_authtoken_json(request.request)
             return BaseHttpResponse(version=self.config.root.version, response={
@@ -36,9 +36,9 @@ class AuthTokenApi:
         @app.post(config.root.api_path_prefix + "authtoken/csv", response_model=BaseHttpResponse, responses={422:{'model': BaseHttpResponse}})
         async def authtoken_csv(request : Json[AuthTokenCsvHttpRequest] = Form(None), csv_file : Optional[UploadFile] = None):
             if not request:
-                raise MOSIPTokenSeederException('ATS-REQ-102', 'Missing request body')
+                raise MOSIPTokenSeederException('ATS-REQ-102', 'invalid input. missing request body')
             if not csv_file:
-                raise MOSIPTokenSeederException('ATS-REQ-102', 'Requires CSV file')
+                raise MOSIPTokenSeederException('ATS-REQ-102', 'invalid input. requires CSV file')
             request_identifier = self.authtoken_service.save_authtoken_csv(request.request, csv_file)
             return BaseHttpResponse(version=self.config.root.version, response={
                 'request_identifier': request_identifier

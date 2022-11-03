@@ -1,1 +1,1 @@
-from .callback_props import CallbackSupportedAuthTypes, CallbackProperties
+from .callback_props import CallbackSupportedAuthTypes, CallbackAuthTypeOdoo, CallbackAuthTypeOauth, CallbackAuthTypeStaticBearer, CallbackProperties

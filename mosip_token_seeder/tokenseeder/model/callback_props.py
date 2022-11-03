@@ -5,8 +5,26 @@ from typing import Optional
 class CallbackSupportedAuthTypes(Enum):
     none = 'none'
     odoo = 'odoo'
-    oauth2 = 'oauth2'
+    oauth = 'oauth'
     staticBearer = 'staticBearer'
+
+class CallbackAuthTypeOdoo(BaseModel):
+    authUrl: Optional[AnyUrl]
+    database: str
+    username: str
+    password: str
+    extraHeaders: Optional[dict]
+
+class CallbackAuthTypeOauth(BaseModel):
+    authUrl: Optional[AnyUrl]
+    username : str = ""
+    password : str = ""
+    clientId : str = ""
+    clientSecret : str = ""
+    extraHeaders: Optional[dict]
+
+class CallbackAuthTypeStaticBearer(BaseModel):
+    token: str
 
 class CallbackProperties(BaseModel):
     url : AnyUrl
@@ -16,12 +34,6 @@ class CallbackProperties(BaseModel):
     callInBulk : bool = False
     requestFileName : str = ""
     authType : CallbackSupportedAuthTypes = CallbackSupportedAuthTypes.none
-    extraAuthHeaders : dict = {}
-    staticAuthToken : str = ""
-    database : str = ""
-    odooAuthUrl : Optional[AnyUrl]
-    oauth2TokenUrl : Optional[AnyUrl]
-    username : str = ""
-    password : str = ""
-    clientId : str = ""
-    clientSecret : str = ""
+    authOdoo: Optional[CallbackAuthTypeOdoo]
+    authOauth: Optional[CallbackAuthTypeOauth]
+    authStaticBearer: Optional[CallbackAuthTypeStaticBearer]

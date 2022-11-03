@@ -40,25 +40,27 @@ class AuthTokenBaseRequest(BaseModel):
             try:
                 value_dict = json.loads(value)
             except:
-                raise MOSIPTokenSeederException('ATS-REQ-102','outputFormat is not a valid json string')
+                raise MOSIPTokenSeederException('ATS-REQ-103','outputFormat is not a valid json string')
             if isinstance(value_dict, list) and 'output' in values and values['output'] == 'csv':
-                raise MOSIPTokenSeederException('ATS-REQ-102','For csv output, outputFormat cannot be list. Has to be json')
+                raise MOSIPTokenSeederException('ATS-REQ-104','For csv output, outputFormat cannot be list. Has to be json')
         return value
 
-    @validator('callbackProperties', pre=True)
-    def filename_valid(cls, value, values):
+    @validator('callbackProperties', pre=True, always=True)
+    def callback_prop_valid(cls, value, values):
+        if values['deliverytype'] == 'callback' and not value:
+            raise MOSIPTokenSeederException('ATS-REQ-024','callbackProperties cannot be empty for deliverytype callback')
         if values['deliverytype'] != 'callback':
             return None
         if values['output'] == 'csv' and not value['requestFileName']:
-            raise MOSIPTokenSeederException('ATS-REQ-102','callback -> requestFileName should be valid for csv output')
+            raise MOSIPTokenSeederException('ATS-REQ-025','requestFileName is not valid in callbackProperties')
         if values['output'] == 'csv' and not value['callInBulk']:
-            raise MOSIPTokenSeederException('ATS-REQ-102','callback -> callInBulk cannot be false for csv output')
+            raise MOSIPTokenSeederException('ATS-REQ-026','callInBulk cannot be false for csv output')
         return value
 
 class AuthTokenRequest(AuthTokenBaseRequest):
     authdata: Optional[List[dict]]
 
-    @validator('authdata')
+    @validator('authdata', always=True)
     def auth_data_validate(cls, value):
         if not value:
             raise MOSIPTokenSeederException('ATS-REQ-102','invalid input. authdata missing')

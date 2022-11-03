@@ -75,6 +75,8 @@ class CallbackHandler:
                 )
                 res = self.make_one_callback(request_string=request_string, auth_res=auth_res)
                 self.logger.debug('Response of callback ' + res)
+        logout_res = self.perform_logout(auth_res=auth_res)
+        self.logger.debug('Logout Response ' + logout_res)
 
     def call_request_output_with_csv(self):
         with tempfile.TemporaryFile(mode='w+') as f:
@@ -91,6 +93,8 @@ class CallbackHandler:
             f.seek(0)
             auth_res = self.perform_auth()
             self.make_one_callback(request_file=f, auth_res=auth_res)
+            logout_res = self.perform_logout(auth_res=auth_res)
+            self.logger.debug('Logout Response ' + logout_res)
 
     def make_one_callback(self, request_string=None, request_file=None, auth_res:requests.Response=None):
         if self.callback_props.authType==CallbackSupportedAuthTypes.odoo:
@@ -98,16 +102,16 @@ class CallbackHandler:
             request_headers = {}
             if request_string:
                 request_headers['Content-type'] = 'application/json'
-        elif self.callback_props.authType==CallbackSupportedAuthTypes.oauth2:
+        elif self.callback_props.authType==CallbackSupportedAuthTypes.oauth:
             request_cookies = {}
-            auth_res = self.check_oauth2_token_expiry_and_renew(auth_res)
+            auth_res = self.check_oauth_token_expiry_and_renew(auth_res)
             request_auth_token = auth_res.json()['access_token']
             request_headers = {'Authorization': 'Bearer ' + request_auth_token}
             if request_string:
                 request_headers['Content-type'] = 'application/json'
         elif self.callback_props.authType==CallbackSupportedAuthTypes.staticBearer:
             request_cookies = {}
-            request_headers = {'Authorization': 'Bearer ' + self.callback_props.staticAuthToken}
+            request_headers = {'Authorization': 'Bearer ' + self.callback_props.authStaticBearer.token}
             if request_string:
                 request_headers['Content-type'] = 'application/json'
         else:
@@ -130,40 +134,61 @@ class CallbackHandler:
     def perform_auth(self):
         auth_res = None
         if self.callback_props.authType==CallbackSupportedAuthTypes.odoo:
-            request_headers = self.callback_props.extraAuthHeaders
-            auth_res = requests.get(self.callback_props.odooAuthUrl, headers=request_headers, json={
+            auth_odoo = self.callback_props.authOdoo
+            request_headers = auth_odoo.extraHeaders
+            auth_res = requests.get(auth_odoo.authUrl, headers=request_headers, json={
                 "jsonrpc": "2.0",
                 "params": {
-                    "db": self.callback_props.database,
-                    "login": self.callback_props.username,
-                    "password": self.callback_props.password
+                    "db": auth_odoo.database,
+                    "login": auth_odoo.username,
+                    "password": auth_odoo.password
                 }
             })
             self.logger.debug('Auth response for callback ' + auth_res.text)
-        elif self.callback_props.authType==CallbackSupportedAuthTypes.oauth2:
-            request_headers = self.callback_props.extraAuthHeaders
+        elif self.callback_props.authType==CallbackSupportedAuthTypes.oauth:
+            auth_oauth = self.callback_props.authOauth
+            request_headers = auth_oauth.extraHeaders
             request_data = {}
-            if self.callback_props.username:
-                request_data['username']=self.callback_props.username
-                request_data['grant_type']='password'
-            if self.callback_props.password:
-                request_data['password']=self.callback_props.password
-            if self.callback_props.clientId:
-                request_data['client_id']=self.callback_props.clientId
-                if not self.callback_props.username:
-                    request_data['grant_type']='client_credentials'
-            if self.callback_props.clientSecret:
-                request_data['client_secret']=self.callback_props.clientSecret
-            auth_res = requests.post(self.callback_props.oauth2TokenUrl, headers=request_headers, data=request_data)
+            if auth_oauth.username:
+                request_data['username'] = auth_oauth.username
+                request_data['grant_type'] = 'password'
+            if auth_oauth.password:
+                request_data['password'] = auth_oauth.password
+            if auth_oauth.clientId:
+                request_data['client_id'] = auth_oauth.clientId
+                if not auth_oauth.username:
+                    request_data['grant_type'] = 'client_credentials'
+            if auth_oauth.clientSecret:
+                request_data['client_secret'] = auth_oauth.clientSecret
+            auth_res = requests.post(auth_oauth.authUrl, headers=request_headers, data=request_data)
         elif self.callback_props.authType==CallbackSupportedAuthTypes.staticBearer:
             pass
         return auth_res
 
-    def check_oauth2_token_expiry_and_renew(self, auth_res:requests.Response=None):
+    def perform_logout(self, auth_res:requests.Response=None):
+        logout_res = None
+        if self.callback_props.authType==CallbackSupportedAuthTypes.odoo:
+            auth_odoo = self.callback_props.authOdoo
+            request_headers = auth_odoo.extraHeaders
+            request_cookies = dict(auth_res.cookies.items())
+            logout_url = auth_odoo.authUrl
+            logout_url = logout_url[:-2] if logout_url[-1]=='/' else logout_url
+            logout_url = logout_url.split('/')
+            logout_url[-1] = 'logout'
+            logout_url = '/'.join(logout_url)
+            logout_res = requests.get(logout_url, headers=request_headers, cookies=request_cookies)
+            self.logger.debug('Logout response for callback ' + logout_res.text)
+        elif self.callback_props.authType==CallbackSupportedAuthTypes.oauth:
+            pass
+        elif self.callback_props.authType==CallbackSupportedAuthTypes.staticBearer:
+            pass
+        return logout_res
+
+    def check_oauth_token_expiry_and_renew(self, auth_res:requests.Response=None):
         if not auth_res:
             return self.perform_auth()
         request_auth_token = auth_res.json()['access_token']
         if datetime.now().timestamp() >= json.loads(base64.urlsafe_b64decode(request_auth_token.split('.')[1]))['exp']:
-            self.logger.info('Oauth2 Token expired. Regenerating token.')
+            self.logger.info('Oauth Token expired. Regenerating token.')
             return self.perform_auth()
         return auth_res

@@ -22,13 +22,7 @@ class CallbackHandler:
         self.logger = logger
         self.req_id = req_id
         self.output_type = output_type
-        self.output_format = output_format if output_format else '''{
-            "vid": "__-vid-__",
-            "token": "__-token-__",
-            "status": "__-status-__",
-            "errorCode": "__-error_code-__",
-            "errorMessage": "__-error_message-__"
-        }'''
+        self.output_format = output_format if output_format else '.output'
         self.callback_props = callback_props
         self.output_formatter_utils = OutputFormatter(config)
         if session:
@@ -57,23 +51,21 @@ class CallbackHandler:
     def call_request_output_with_json(self):
         auth_res = self.perform_auth()
         if self.callback_props.callInBulk:
-            request_string = '['
+            request_array = []
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
-                if i!=0: request_string+=','
-                request_string += self.output_formatter_utils.format_output_with_vars(
+                request_array.append(self.output_formatter_utils.format_output_with_vars(
                     self.output_format,
                     each_request
-                )
-            request_string += ']'
-            res = self.make_one_callback(request_string=request_string, auth_res=auth_res)
+                ))
+            res = self.make_one_callback(request_dict=request_array, auth_res=auth_res)
             self.logger.debug('Response of callback ' + res)
         else:
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
-                request_string = self.output_formatter_utils.format_output_with_vars(
+                request_dict = self.output_formatter_utils.format_output_with_vars(
                     self.output_format,
                     each_request
                 )
-                res = self.make_one_callback(request_string=request_string, auth_res=auth_res)
+                res = self.make_one_callback(request_dict=request_dict, auth_res=auth_res)
                 self.logger.debug('Response of callback ' + res)
         logout_res = self.perform_logout(auth_res=auth_res)
         self.logger.debug('Logout Response ' + logout_res)
@@ -81,14 +73,15 @@ class CallbackHandler:
     def call_request_output_with_csv(self):
         with tempfile.TemporaryFile(mode='w+') as f:
             csvwriter = csv.writer(f)
-            output_format_dict : dict = json.loads(self.output_format)
-            csvwriter.writerow(list(output_format_dict.keys()))
+            header_written = True
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
+                output : dict = self.output_formatter_utils.format_output_with_vars(self.output_format, each_request)
+                if not header_written:
+                    csvwriter.writerow(output.keys())
+                    header_written = True
                 csvwriter.writerow([
-                    self.output_formatter_utils.format_output_with_vars(
-                        json.dumps(cell) if isinstance(cell, dict) else str(cell) if cell!=None else None,
-                        each_request
-                    ) for cell in output_format_dict.values()
+                    json.dumps(cell) if cell!=None and not isinstance(cell, str) else str(cell) if cell!=None else None
+                    for cell in output.values()
                 ])
             f.seek(0)
             auth_res = self.perform_auth()
@@ -96,36 +89,26 @@ class CallbackHandler:
             logout_res = self.perform_logout(auth_res=auth_res)
             self.logger.debug('Logout Response ' + logout_res)
 
-    def make_one_callback(self, request_string=None, request_file=None, auth_res:requests.Response=None):
+    def make_one_callback(self, request_dict=None, request_file=None, auth_res:requests.Response=None):
+        request_cookies = {}
+        request_headers = {}
+
         if self.callback_props.authType==CallbackSupportedAuthTypes.odoo:
-            request_cookies = dict(auth_res.cookies.items())
-            request_headers = {}
-            if request_string:
-                request_headers['Content-type'] = 'application/json'
+            request_cookies.update(dict(auth_res.cookies.items()))
         elif self.callback_props.authType==CallbackSupportedAuthTypes.oauth:
-            request_cookies = {}
             auth_res = self.check_oauth_token_expiry_and_renew(auth_res)
             request_auth_token = auth_res.json()['access_token']
-            request_headers = {'Authorization': 'Bearer ' + request_auth_token}
-            if request_string:
-                request_headers['Content-type'] = 'application/json'
+            request_headers['Authorization'] = 'Bearer ' + request_auth_token
         elif self.callback_props.authType==CallbackSupportedAuthTypes.staticBearer:
-            request_cookies = {}
-            request_headers = {'Authorization': 'Bearer ' + self.callback_props.authStaticBearer.token}
-            if request_string:
-                request_headers['Content-type'] = 'application/json'
-        else:
-            request_cookies = {}
-            request_headers = {}
-            if request_string:
-                request_headers['Content-type'] = 'application/json'
+            request_headers['Authorization'] = 'Bearer ' + self.callback_props.authStaticBearer.token
+
         request_headers.update(self.callback_props.extraHeaders)
         request_method = getattr(requests, self.callback_props.httpMethod.lower())
         response = request_method(
             self.callback_props.url,
             headers=request_headers,
             cookies=request_cookies,
-            data=request_string if request_string else '',
+            json=request_dict,
             files={self.callback_props.requestFileName: request_file} if request_file else {},
             timeout=self.callback_props.timeoutSeconds
         )

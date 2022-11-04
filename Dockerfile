@@ -1,9 +1,11 @@
 FROM python:3.8.13-slim-bullseye
 
 RUN apt-get update
-RUN apt-get -y install build-essential libsqlcipher-dev libsqlite3-dev curl
+RUN apt-get -y install build-essential libsqlcipher-dev libsqlite3-dev autoconf libtool curl
 ADD ./mosip_token_seeder/requirements.txt /seeder/mosip_token_seeder/requirements.txt
 RUN pip3 install -r /seeder/mosip_token_seeder/requirements.txt
+RUN apt-get -y purge build-essential autoconf libtool
+RUN apt-get -y autoremove
 
 ARG container_user=mosip
 ARG container_user_group=mosip

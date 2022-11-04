@@ -7,13 +7,13 @@ from sqlalchemy import true
 
 from ..model import MapperFields, AuthTokenBaseModel
 
-from mosip_token_seeder.tokenseeder.utils import NestedJsonUtils
+from mosip_token_seeder.tokenseeder.utils import JqUtils
 
 class MappingService:
     def __init__(self, config, logger):
         self.config = config
         self.logger = logger
-        self.nested_json_utils = NestedJsonUtils()
+        self.jq_utils = JqUtils()
         self.mandatory_validation_auth_fields = config.authtoken.mandatory_validation_auth_fields.split(',')
 
     def validate_auth_data(self, authdata : dict, mapping: MapperFields, language):
@@ -22,7 +22,7 @@ class MappingService:
 
         final_dict = {}
 
-        authdata_vid = self.nested_json_utils.extract_nested_value(mapping.vid, authdata)
+        authdata_vid = self.jq_utils.eval_single_expr(f'.{mapping.vid}', authdata)
         if not authdata_vid:
             return None, 'ATS-REQ-009', 'vid or its mapping not present'
         # if len(authdata_vid) <= 16 and len(authdata_vid) >= 19:
@@ -32,7 +32,7 @@ class MappingService:
         name_arr = []
         name_present = False
         for name_var in mapping.name:
-            authdata_name_var = self.nested_json_utils.extract_nested_value(name_var, authdata)
+            authdata_name_var = self.jq_utils.eval_single_expr(f'.{name_var}', authdata)
             if authdata_name_var is not None:
                 name_present = True
             if authdata_name_var:
@@ -45,7 +45,7 @@ class MappingService:
         if len(name_arr) > 0:
             final_dict['name'] = [{'language':language,'value': self.config.root.name_delimiter.join(name_arr)}]
 
-        authdata_gender = self.nested_json_utils.extract_nested_value(mapping.gender, authdata)
+        authdata_gender = self.jq_utils.eval_single_expr(f'.{mapping.gender}', authdata)
         if 'gender' in self.mandatory_validation_auth_fields:
             if authdata_gender is None:
                 return None, 'ATS-REQ-011', 'gender or its mapping not present'
@@ -54,7 +54,7 @@ class MappingService:
         if authdata_gender:
             final_dict['gender'] = [{'language':language,'value': authdata_gender}]
 
-        authdata_dob = self.nested_json_utils.extract_nested_value(mapping.dob, authdata)
+        authdata_dob = self.jq_utils.eval_single_expr(f'.{mapping.dob}', authdata)
         if 'dob' in self.mandatory_validation_auth_fields:
             if authdata_dob is None:
                 return None, 'ATS-REQ-012', 'dateOfBirth or its mapping not present'
@@ -68,14 +68,14 @@ class MappingService:
             #     return None, 'ATS-REQ-007', 'not a valid date format for date of birth'
             final_dict['dob'] = self.parse_dob_in_accepted_format(authdata_dob)
 
-        authdata_phone = self.nested_json_utils.extract_nested_value(mapping.phoneNumber, authdata)
+        authdata_phone = self.jq_utils.eval_single_expr(f'.{mapping.phoneNumber}', authdata)
         if 'phoneNumber' in self.mandatory_validation_auth_fields:
             if authdata_phone is None:
                 return None, 'ATS-REQ-013', 'phoneNumber or its mapping not present'
         if authdata_phone:
             final_dict['phoneNumber'] = authdata_phone
 
-        authdata_email = self.nested_json_utils.extract_nested_value(mapping.emailId, authdata)
+        authdata_email = self.jq_utils.eval_single_expr(f'.{mapping.emailId}', authdata)
         if 'emailId' in self.mandatory_validation_auth_fields:
             if authdata_email is None:
                 return None, 'ATS-REQ-014', 'emailId or its mapping not present'
@@ -85,7 +85,7 @@ class MappingService:
         addr_arr = []
         addr_present = False
         for addr in mapping.fullAddress:
-            addr_val  = self.nested_json_utils.extract_nested_value(addr, authdata)
+            addr_val  = self.jq_utils.eval_single_expr(f'.{addr}', authdata)
             if addr_val is not None:
                 addr_present = True
             if addr_val:

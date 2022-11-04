@@ -1,2 +1,2 @@
-from .nested_json import NestedJsonUtils
+from .jq_util import JqUtils
 from .output_formatter import OutputFormatter

@@ -1,4 +1,4 @@
-import json
+import pyjq
 
 from pydantic import BaseModel, validator
 from typing import List, Optional
@@ -36,12 +36,11 @@ class AuthTokenBaseRequest(BaseModel):
     @validator('outputFormat', pre=True)
     def output_format_valid(cls, value, values):
         if value:
-            value_dict = None
             try:
-                value_dict = json.loads(value)
+                pyjq.compile(value)
             except:
-                raise MOSIPTokenSeederException('ATS-REQ-103','outputFormat is not a valid json string')
-            if isinstance(value_dict, list) and 'output' in values and values['output'] == 'csv':
+                raise MOSIPTokenSeederException('ATS-REQ-103','outputFormat is not a valid jq expression')
+            if values['output'] == 'csv' and not value.strip().startswith('{'):
                 raise MOSIPTokenSeederException('ATS-REQ-104','For csv output, outputFormat cannot be list. Has to be json')
         return value
 

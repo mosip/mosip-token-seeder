@@ -15,13 +15,7 @@ class DownloadHandler:
         self.logger = logger
         self.req_id = req_id
         self.output_type = output_type
-        self.output_format = output_format if output_format else '''{
-            "vid": "__-vid-__",
-            "token": "__-token-__",
-            "status": "__-status-__",
-            "errorCode": "__-error_code-__",
-            "errorMessage": "__-error_message-__"
-        }'''
+        self.output_format = output_format if output_format else '.output'
         self.output_formatter_utils = OutputFormatter(config)
         if session:
             self.session = session
@@ -63,11 +57,9 @@ class DownloadHandler:
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
                 f.write(',') if i!=0 else None
                 json.dump(
-                    json.loads(
-                        self.output_formatter_utils.format_output_with_vars(
-                            self.output_format,
-                            each_request
-                        )
+                    self.output_formatter_utils.format_output_with_vars(
+                        self.output_format,
+                        each_request
                     ),
                     f
                 )
@@ -79,12 +71,13 @@ class DownloadHandler:
             os.mkdir(self.config.root.output_stored_files_path)
         with open(os.path.join(self.config.root.output_stored_files_path, self.req_id), 'w+') as f:
             csvwriter = csv.writer(f)
-            output_format_dict : dict = json.loads(self.output_format)
-            csvwriter.writerow(list(output_format_dict.keys()))
+            header_written = False
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
+                output : dict = self.output_formatter_utils.format_output_with_vars(self.output_format, each_request)
+                if not header_written:
+                    csvwriter.writerow(output.keys())
+                    header_written = True
                 csvwriter.writerow([
-                    self.output_formatter_utils.format_output_with_vars(
-                        json.dumps(cell) if isinstance(cell, dict) else str(cell) if cell!=None else None,
-                        each_request
-                    ) for cell in output_format_dict.values()
+                    json.dumps(cell) if cell!=None and not isinstance(cell, str) else str(cell) if cell!=None else None
+                    for cell in output.values()
                 ])

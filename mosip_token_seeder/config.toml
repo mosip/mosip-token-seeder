@@ -7,8 +7,6 @@ default_lang_code = "eng"
 output_stored_files_path = "stored_files"
 full_address_delimiter = ', '
 name_delimiter = ' '
-output_format_var_starts = '__-'
-output_format_var_ends = '-__'
 
 [authtoken]
 mandatory_validation_auth_fields = 'name,gender,dob,fullAddress'

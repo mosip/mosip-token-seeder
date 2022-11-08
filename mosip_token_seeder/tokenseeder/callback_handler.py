@@ -67,8 +67,7 @@ class CallbackHandler:
                 )
                 res = self.make_one_callback(request_dict=request_dict, auth_res=auth_res)
                 self.logger.debug('Response of callback ' + res)
-        logout_res = self.perform_logout(auth_res=auth_res)
-        self.logger.debug('Logout Response ' + logout_res)
+        self.perform_logout(auth_res=auth_res)
 
     def call_request_output_with_csv(self):
         with tempfile.TemporaryFile(mode='w+') as f:
@@ -86,8 +85,7 @@ class CallbackHandler:
             f.seek(0)
             auth_res = self.perform_auth()
             self.make_one_callback(request_file=f, auth_res=auth_res)
-            logout_res = self.perform_logout(auth_res=auth_res)
-            self.logger.debug('Logout Response ' + logout_res)
+            self.perform_logout(auth_res=auth_res)
 
     def make_one_callback(self, request_dict=None, request_file=None, auth_res:requests.Response=None):
         request_cookies = {}

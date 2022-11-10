@@ -53,9 +53,12 @@ class ODKPullService:
                             projectid=config.projectid, formid=config.formid)
             odata_url = service_url
         if config.startdate is not None and len(config.startdate) and config.enddate is not None and len(config.enddate):
-            filter = '?$filter=__system/submissionDate%20ge%20' + config.startdate + \
+            filter = '$filter=__system/submissionDate%20ge%20' + config.startdate + \
                 '%20and%20__system/submissionDate%20lt%20' + config.enddate
-            odata_url = odata_url + filter
+            if "?" in odata_url:
+                odata_url = odata_url + "&" + filter
+            else:
+                odata_url = odata_url + "?" + filter
         
         auth_header = {'Authorization': 'Bearer ' + token}
         response = requests.get(odata_url, headers=auth_header)

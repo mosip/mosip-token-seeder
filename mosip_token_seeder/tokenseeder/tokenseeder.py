@@ -1,11 +1,15 @@
 import os
 import json
+import datetime
 from logging import Logger
 from queue import Queue
 from threading import Thread
 from sqlalchemy.orm import Session
+from sqlalchemy import Table
 
+from .model import CallbackProperties
 from .download_handler import DownloadHandler
+from .callback_handler import CallbackHandler
 
 from mosip_token_seeder.authenticator import MOSIPAuthenticator
 from mosip_token_seeder.authenticator.exceptions import AuthenticatorException
@@ -33,9 +37,8 @@ class TokenSeeder(Thread):
                     if auth_request.status == 'submitted':
                         auth_request.status = 'processing'
                         auth_request.update_commit_timestamp(session)
-                        data_line_no = auth_request.number_processed + auth_request.number_error
                         total_no = auth_request.number_total
-                        while data_line_no < total_no:
+                        for data_line_no in range(total_no):
                             auth_token_data_entry : AuthTokenRequestDataRepository = AuthTokenRequestDataRepository.get_from_session(session, req_id, data_line_no + 1)
                             if auth_token_data_entry.status == 'submitted':
                                 auth_token_data_entry.status = 'processing'
@@ -77,12 +80,38 @@ class TokenSeeder(Thread):
                                 auth_token_data_entry.update_timestamp()
                                 auth_request.update_timestamp()
                                 session.commit()
-                            data_line_no = auth_request.number_processed + auth_request.number_error
+                            else:
+                                pass
                     auth_request.status = 'processed' if auth_request.number_error == 0 else 'processed_with_errors'
                     auth_request.update_commit_timestamp(session)
                     output_type = auth_request.output_type
+                    output_format = auth_request.output_format
                     delivery_type = auth_request.delivery_type
                     if delivery_type == 'download':
-                        DownloadHandler(self.config, self.logger, req_id, output_type, session)
+                        DownloadHandler(self.config, self.logger, req_id, output_type, output_format, session)
+                    elif delivery_type == 'callback':
+                        callback_props = CallbackProperties.parse_raw(auth_request.callback_props)
+                        CallbackHandler(self.config, self.logger, req_id, output_type, callback_props, output_format, session)
             except Exception as e:
                 self.logger.error('Token Seeder Error: %s', repr(e))
+
+    def cleanup_old_entries(self):
+        try:
+            exp_date_time = datetime.datetime.utcnow() - datetime.timedelta(seconds=float(self.config.cleanup.cleanup_expiry_seconds))
+            authtoken_request_table : Table = AuthTokenRequestRepository.__table__
+            authtoken_request_data_table : Table = AuthTokenRequestDataRepository.__table__
+            self.db_engine.execute(authtoken_request_table.delete().where(authtoken_request_table.c.cr_dtimes < exp_date_time))
+            self.db_engine.execute(authtoken_request_data_table.delete().where(authtoken_request_data_table.c.cr_dtimes < exp_date_time))
+        except Exception as e:
+            self.logger.error('Error deleting old entries from db: %s', repr(e))
+
+        # delete from stored files directory
+        self.logger.info('Cleaned up old entries in db. Starting stored_files cleanup')
+        try:
+            for f in os.listdir(self.config.root.output_stored_files_path):
+                f = os.path.join(self.config.root.output_stored_files_path, f)
+                if os.stat(f).st_mtime < exp_date_time.timestamp():
+                    if os.path.isfile(f):
+                        os.remove(f)
+        except Exception as e:
+            self.logger.error('Error deleting old files: %s', repr(e))

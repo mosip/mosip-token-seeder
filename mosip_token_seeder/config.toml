@@ -1,4 +1,5 @@
 [root]
+version = '1.1.0'
 context_path = '/'
 api_path_prefix = '/'
 pid_grep_name = 'gunicorn'
@@ -6,6 +7,14 @@ default_lang_code = "eng"
 output_stored_files_path = "stored_files"
 full_address_delimiter = ', '
 name_delimiter = ' '
+
+[authtoken]
+mandatory_validation_auth_fields = 'name,gender,dob,fullAddress'
+
+[cleanup]
+enabled = true
+cleanup_interval_seconds = '21600'
+cleanup_expiry_seconds = '21600'
 
 [logging]
 log_file_name = "mosip_token_seeder.log"
@@ -19,7 +28,7 @@ password = ''
 random_password_length = 16
 generate_db_always = true
 generate_password_always = true
-print_password_on_startup = true
+print_password_on_startup = false
 
 
 [gunicorn]

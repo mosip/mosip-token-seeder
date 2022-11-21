@@ -5,14 +5,18 @@ import csv
 
 from sqlalchemy.orm import Session
 
+from .utils import OutputFormatter
+
 from mosip_token_seeder.repository import AuthTokenRequestDataRepository, AuthTokenRequestRepository
 
 class DownloadHandler:
-    def __init__(self, config, logger, req_id, output_type, session=None, db_engine=None):
+    def __init__(self, config, logger, req_id, output_type, output_format=None, session=None, db_engine=None):
         self.config = config
         self.logger = logger
         self.req_id = req_id
         self.output_type = output_type
+        self.output_format = output_format if output_format else '.output'
+        self.output_formatter_utils = OutputFormatter(config)
         if session:
             self.session = session
             self.handle()
@@ -20,7 +24,7 @@ class DownloadHandler:
             with Session(db_engine) as session:
                 self.session = session
                 self.handle()
-    
+
     def handle(self):
         try:
             if self.output_type == 'json':
@@ -44,7 +48,7 @@ class DownloadHandler:
             auth_request : AuthTokenRequestRepository = AuthTokenRequestRepository.get_from_session(self.session, self.req_id)
             auth_request.status = error_status
             auth_request.update_commit_timestamp(self.session)
-    
+
     def write_request_output_to_json(self):
         if not os.path.isdir(self.config.root.output_stored_files_path):
             os.mkdir(self.config.root.output_stored_files_path)
@@ -52,20 +56,14 @@ class DownloadHandler:
             f.write('[')
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
                 f.write(',') if i!=0 else None
-                each_err = each_request.error_code
-                each_err_message = each_request.error_message
-                if each_request.auth_data_input:
-                    each_vid = json.loads(each_request.auth_data_input)['vid']
-                else:
-                    each_received = json.loads(each_request.auth_data_received)
-                    each_vid = each_received['vid'] if 'vid' in each_received else None
-                json.dump({
-                    'vid': each_vid,
-                    'token': each_request.token,
-                    'status': each_request.status,
-                    'errorCode': each_err if each_err else None,
-                    'errorMessage': each_err_message if each_err_message else None,
-                },f)
+                json.dump(
+                    self.output_formatter_utils.format_output_with_vars(
+                        self.output_format,
+                        each_request
+                    ),
+                    f
+                )
+
             f.write(']')
     
     def write_request_output_to_csv(self):
@@ -73,19 +71,13 @@ class DownloadHandler:
             os.mkdir(self.config.root.output_stored_files_path)
         with open(os.path.join(self.config.root.output_stored_files_path, self.req_id), 'w+') as f:
             csvwriter = csv.writer(f)
-            csvwriter.writerow(['vid', 'token', 'status', 'errorCode', 'errorMessage'])
+            header_written = False
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
-                each_err = each_request.error_code
-                each_err_message = each_request.error_message
-                if each_request.auth_data_input:
-                    each_vid = json.loads(each_request.auth_data_input)['vid']
-                else:
-                    each_received = json.loads(each_request.auth_data_received)
-                    each_vid = each_received['vid'] if 'vid' in each_received else None
+                output : dict = self.output_formatter_utils.format_output_with_vars(self.output_format, each_request)
+                if not header_written:
+                    csvwriter.writerow(output.keys())
+                    header_written = True
                 csvwriter.writerow([
-                    each_vid,
-                    each_request.token,
-                    each_request.status,
-                    each_err if each_err else None,
-                    each_err_message if each_err_message else None,
+                    json.dumps(cell) if cell!=None and not isinstance(cell, str) else str(cell) if cell!=None else None
+                    for cell in output.values()
                 ])

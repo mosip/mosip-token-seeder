@@ -23,6 +23,7 @@ Refer [documentation](https://docs.mosip.io/openg2p/mosip-token-seeder).
     export TOKENSEEDER_GUNICORN__KEEP_ALIVE=5
     export TOKENSEEDER_DB__LOCATION="sqlite:///auth_token_seeder.dbsqlite"
     export TOKENSEEDER_DB__GENERATE_DB_ALWAYS="false"
+    export TOKENSEEDER_DB__PRINT_PASSWORD_ON_STARTUP="true"
     export TOKENSEEDER_MOSIP_AUTH__PARTNER_APIKEY=
     export TOKENSEEDER_MOSIP_AUTH__PARTNER_MISP_LK=
     export TOKENSEEDER_MOSIP_AUTH__PARTNER_ID=
@@ -44,8 +45,16 @@ Refer [documentation](https://docs.mosip.io/openg2p/mosip-token-seeder).
     ```
 
 ### Running
--   ```sh
+- Activate virtual env.
+    ```sh
     source venv_token_seeder/bin/activate
+    ```
+- When running tokenseeder locally for the very first time, run it with the env variable.
+    ```sh
+    TOKENSEEDER_DB__GENERATE_DB_ALWAYS="true" run_token_seeder_dev
+    ```
+- For the subsequent runs, simply use.
+    ```sh
     run_token_seeder_dev
     ```
     Access localhost:8080 on browser. Access localhost:8080/docs for apidocs.

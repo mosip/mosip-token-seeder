@@ -12,12 +12,12 @@ class DemographicLanguageField(BaseModel):
     value: str
 
 class DemographicsModel(BaseModel):
-    name : List[DemographicLanguageField]
-    gender : List[DemographicLanguageField]
-    dob : str
+    name : Optional[List[DemographicLanguageField]]
+    gender : Optional[List[DemographicLanguageField]]
+    dob : Optional[str]
     phoneNumber : Optional[str]
     emailId : Optional[str]
-    fullAddress : List[DemographicLanguageField]
+    fullAddress : Optional[List[DemographicLanguageField]]
 
 class MOSIPEncryptAuthRequest(BaseModel):
     timestamp : str

@@ -1,1 +1,1 @@
-import os
+from .callback_props import CallbackSupportedAuthTypes, CallbackAuthTypeOdoo, CallbackAuthTypeOauth, CallbackAuthTypeStaticBearer, CallbackProperties

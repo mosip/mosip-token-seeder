@@ -1,17 +1,22 @@
 from datetime import datetime
 from pydantic import BaseModel, validator
-from typing import List
+from typing import List, Optional
 
 from ..exception import MOSIPTokenSeederException
 
-from . import AuthTokenRequest
+from . import MapperFields
 
-class AuthTokenHttpRequest(BaseModel):
+class AuthTokenRequestSync(BaseModel):
+    mapping: MapperFields = MapperFields()
+    lang: Optional[str]
+    authdata: Optional[dict]
+
+class AuthTokenHttpRequestSync(BaseModel):
     id: str
     version: str
     metadata: str
     requesttime: datetime
-    request: AuthTokenRequest
+    request: AuthTokenRequestSync
 
     @validator('requesttime', pre=True)
     def parse_datetime(cls, value):

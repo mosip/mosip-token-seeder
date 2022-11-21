@@ -13,12 +13,11 @@ supported_delivery_types = ['download']
 
 
 class ODKConfig(BaseModel):
-    print("ODKConfig called")
-    odataurl : str
+    odataurl : Optional[str]
     baseurl : str
     version : str = "v1"
-    projectid : str
-    formid : str
+    projectid : Optional[str]
+    formid : Optional[str]
     email : str
     password : str
     startdate : Optional[str]
@@ -26,17 +25,15 @@ class ODKConfig(BaseModel):
 
 
 class AuthTokenODKRequest(AuthTokenBaseRequest):
-    print("AuthTokenODKRequest called")
     odkconfig : ODKConfig
 
     # @validator('odkconfig')
     # def auth_data_validate(cls, value):
     #     if not value:
-    #         raise MOSIPTokenSeederException('ATS-REQ-102','authdata missing')
+    #         raise MOSIPTokenSeederException('ATS-REQ-102','invalid input. authdata missing')
     #     return value
     # pass
 
 class AuthTokenODKHttpRequest(AuthTokenHttpRequest):
-    print("AuthTokenODKHttpRequest called")
     request : AuthTokenODKRequest
     

@@ -4,7 +4,7 @@ from datetime import datetime
 from logging import Logger
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
+from fastapi.exceptions import RequestValidationError
 
 from ..model import BaseHttpResponse, BaseError
 from . import MOSIPTokenSeederException, MOSIPTokenSeederNoException
@@ -27,6 +27,7 @@ class RequestValidationErrorHandler:
                 status_code = 400
                 response = None
             res = BaseHttpResponse(
+                version=self.config.root.version,
                 errors=[
                     BaseError(
                         errorCode=code,
@@ -38,16 +39,17 @@ class RequestValidationErrorHandler:
             res_dict = json.loads(res.json())
             return JSONResponse(content=res_dict, status_code=status_code)
         
-        @app.exception_handler(ValidationError)
-        async def validation_exception_handler(request, exc : ValidationError):
+        @app.exception_handler(RequestValidationError)
+        async def validation_exception_handler(request, exc : RequestValidationError):
             self.logger.error('Handling exception: %s' % repr(exc))
             errors = []
             for err in exc.errors():
                 errors.append(BaseError(
                     errorCode='ATS-REQ-102',
-                    errorMessage='%s. %s. %s' % ('->'.join([str(i) for i in err['loc']]), str(err['type']), str(err['msg']))
+                    errorMessage='Invalid Input. %s' % str(err['msg'])
                 ))
             res = BaseHttpResponse(
+                version=self.config.root.version,
                 errors=errors,
                 response=None
             )
@@ -65,6 +67,7 @@ class RequestValidationErrorHandler:
                 code = 'ATS-REQ-100'
                 message = l[0]
             res = BaseHttpResponse(
+                version=self.config.root.version,
                 errors=[
                     BaseError(
                         errorCode=code,

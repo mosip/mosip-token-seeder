@@ -2,10 +2,10 @@ name: MOSIP Token Seeder Docker Build upon push
 
 on:
   push:
-    tags-ignore:
-    - '**'
-    branches:
-  workflow_dispatch:
+#    tags-ignore:
+#    - '**'
+#    branches:
+#  workflow_dispatch:
 
 jobs:
   token-seeder-build:

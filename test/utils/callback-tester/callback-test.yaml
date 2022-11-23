@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tokenseeder-callback-tester
+  labels:
+    app.kubernetes.io/name: tokenseeder-callback-tester
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tokenseeder-callback-tester
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tokenseeder-callback-tester
+    spec:
+      containers:
+      - name: tester
+        image: lalithkota/uvicorn-gunicorn-fastapi-jwt:python3.8-2022-11-11
+        ports:
+        - containerPort: 80
+        env:
+        - name: MAX_WORKERS
+          value: "1"
+        - name: JWKS_URI
+          value: "http://keycloak.keycloak/auth/realms/mosip/protocol/openid-connect/certs"
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: main-file-volume
+          mountPath: /app/main.py
+          subPath: main.py
+      volumes:
+        - name: main-file-volume
+          configMap:
+            name: tokenseeder-callback-tester-main
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tokenseeder-callback-tester
+  labels:
+    app.kubernetes.io/name: tokenseeder-callback-tester
+spec:
+  selector:
+    app.kubernetes.io/name: tokenseeder-callback-tester
+  ports:
+    - protocol: TCP
+      port: 80

@@ -40,8 +40,6 @@ class AuthTokenBaseRequest(BaseModel):
                 pyjq.compile(value)
             except:
                 raise MOSIPTokenSeederException('ATS-REQ-103','outputFormat is not a valid jq expression')
-            if values['output'] == 'csv' and not value.strip().startswith('{'):
-                raise MOSIPTokenSeederException('ATS-REQ-104','For csv output, outputFormat cannot be list. Has to be json')
         return value
 
     @validator('callbackProperties', pre=True, always=True)
@@ -50,9 +48,9 @@ class AuthTokenBaseRequest(BaseModel):
             raise MOSIPTokenSeederException('ATS-REQ-024','callbackProperties cannot be empty for deliverytype callback')
         if values['deliverytype'] != 'callback':
             return None
-        if values['output'] == 'csv' and not value['requestFileName']:
+        if values['output'] == 'csv' and not value.get('requestFileName', ''):
             raise MOSIPTokenSeederException('ATS-REQ-025','requestFileName is not valid in callbackProperties')
-        if values['output'] == 'csv' and not value['callInBulk']:
+        if values['output'] == 'csv' and not value.get('callInBulk', False):
             raise MOSIPTokenSeederException('ATS-REQ-026','callInBulk cannot be false for csv output')
         return value
 

@@ -35,7 +35,7 @@ def get_current_worker_id(config):
     import subprocess
     try:
         pid_arr = sorted([int(a) for a in str(subprocess.check_output(['pgrep','-f',config.root.pid_grep_name]), 'UTF-8').split('\n') if a])
-        config.gunicorn.worker_id = pid_arr.index(os.getpid()) - 1
+        config.gunicorn.worker_id = pid_arr.index(os.getpid()) - 2
     except:
         config.gunicorn.worker_id = -1
 

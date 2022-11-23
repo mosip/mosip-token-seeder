@@ -80,6 +80,11 @@ seeder:
   certsSecret:
     name: "tokenseeder-partner-certs-secret"
     mountPath: "/seeder/certs"
+  mandatoryValidationFields: "name,gender,dob,fullAddress"
+  cleanup:
+    enabled: true
+    cleanupIntervalSeconds: '20'
+    cleanupExpirySeconds: '20'
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes

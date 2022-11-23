@@ -17,3 +17,7 @@ data:
   TOKENSEEDER_MOSIP_AUTH_SERVER__IDA_AUTH_URL: {{ .Values.seeder.mosipAuth.idaAuthUrl | quote }}
   TOKENSEEDER_CRYPTO_ENCRYPT__ENCRYPT_CERT_PATH: {{ .Values.seeder.crypto.encryptCertPath | quote }}
   TOKENSEEDER_CRYPTO_SIGNATURE__SIGN_P12_FILE_PATH: {{ .Values.seeder.crypto.signP12FilePath | quote }}
+  TOKENSEEDER_AUTHTOKEN__MANDATORY_VALIDATION_AUTH_FIELDS: {{ .Values.seeder.mandatoryValidationFields | quote }}
+  TOKENSEEDER_CLEANUP__ENABLED: {{ .Values.seeder.cleanup.enabled | quote }}
+  TOKENSEEDER_CLEANUP__CLEANUP_INTERVAL_SECONDS: {{ .Values.seeder.cleanup.cleanupIntervalSeconds | quote }}
+  TOKENSEEDER_CLEANUP__CLEANUP_EXPIRY_SECONDS: {{ .Values.seeder.cleanup.cleanupExpirySeconds | quote }}

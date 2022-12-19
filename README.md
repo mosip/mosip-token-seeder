@@ -84,8 +84,12 @@ docker run -it --rm \
 ```
 
 ## Installing on k8s cluster using the helm
+- ```sh
+    cd helm
+    ```
+- Configure `seeder.mandatoryValidationFields` and `seeder.cleanup` sections in values.yaml, with the desired values.
+  - Or post installation; edit these values in `mosip-token-seeder` configmap and restart tokenseeder pod.
 - Install `kubectl` and `helm` utilities. Then run:
     ```sh
-    cd helm
     ./install.sh [cluster-kubeconfig-file]
     ```

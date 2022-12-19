@@ -72,15 +72,17 @@ class CallbackHandler:
     def call_request_output_with_csv(self):
         with tempfile.TemporaryFile(mode='w+') as f:
             csvwriter = csv.writer(f)
-            header_written = True
+            header_written = False
             for i, each_request in enumerate(AuthTokenRequestDataRepository.get_all_from_session(self.session, self.req_id)):
-                output : dict = self.output_formatter_utils.format_output_with_vars(self.output_format, each_request)
-                if not header_written:
+                output = self.output_formatter_utils.format_output_with_vars(self.output_format, each_request)
+                if not header_written and isinstance(output, dict):
                     csvwriter.writerow(output.keys())
                     header_written = True
+                if isinstance(output, dict):
+                    output = output.values()
                 csvwriter.writerow([
                     json.dumps(cell) if cell!=None and not isinstance(cell, str) else str(cell) if cell!=None else None
-                    for cell in output.values()
+                    for cell in output
                 ])
             f.seek(0)
             auth_res = self.perform_auth()

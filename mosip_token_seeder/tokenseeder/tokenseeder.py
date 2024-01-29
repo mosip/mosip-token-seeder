@@ -45,6 +45,7 @@ class TokenSeeder(Thread):
                                 auth_token_data_entry.update_commit_timestamp(session)
                                 try:
                                     auth_data_output_json = self.authenticator.do_auth(json.loads(auth_token_data_entry.auth_data_input))
+                                    
                                     self.logger.debug("Auth output json data: %s", auth_data_output_json)
                                     auth_data_output = json.loads(auth_data_output_json)
                                     if 'response' in auth_data_output and auth_data_output['response']['authStatus']:

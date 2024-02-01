@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+import requests
 import sys
 import traceback
 
@@ -17,7 +18,7 @@ class MOSIPAuthenticator:
         else:
             self.logger = logger
 
-        self.auth_api_url = config_obj.mosip_auth_server.ida_auth_url
+        self.auth_api_url =  str(config_obj.mosip_auth_server.ida_auth_url)
 
         self.partner_id = str(config_obj.mosip_auth.partner_id)
         self.psut_hash_algo = config_obj.mosip_auth.psut_hash_algo
@@ -38,19 +39,17 @@ class MOSIPAuthenticator:
     
     def do_auth(self, auth_req_data : dict):
         vid = auth_req_data.pop('vid')
-        
+
         self.logger.info('Received Auth Request.')
         try:
             if not self.skip_auth:
                 demographic_data = DemographicsModel(**auth_req_data)
-                # call {self.auth_api_url}/{vid} API to get data
 
-                # compare demographic_data with this API Response
+                response = requests.get(url=self.auth_api_url + "/" + vid, headers='')
+                # TODO: Compare demographic_data and response to do demographic verification.
 
-            # generate token using this
             token = self.generate_psut(vid, self.partner_id, self.psut_hash_algo)
 
-            # return response in form of
             return json.dumps({
                 "response": {
                     "authStatus": True,
@@ -72,5 +71,5 @@ class MOSIPAuthenticator:
         hash_algo = getattr(hashes, hash_algo)()
         digest = hashes.Hash(hash_algo)
         digest.update(f'{vid}{partner_id}'.encode(encoding="utf-8"))
-        return base64.urlsafe_b64encode(digest.finalize()).rstrip("=")
-
+        token=base64.urlsafe_b64encode(digest.finalize()).decode().rstrip("=")
+        return token

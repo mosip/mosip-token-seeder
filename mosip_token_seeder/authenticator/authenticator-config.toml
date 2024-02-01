@@ -1,6 +1,6 @@
 [mosip_auth]
 # partner_id = 
-skip_auth = false
+skip_auth = true
 psut_hash_algo = 'SHA3_256'
 
 [mosip_auth_server]

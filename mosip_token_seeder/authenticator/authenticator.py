@@ -1,15 +1,12 @@
-import string
-import secrets
-import logging
-import sys
-import traceback
 import base64
 import json
-from datetime import datetime
-from cryptography.hazmat.primitives import hashes
-import httpx
+import logging
+import requests
+import sys
+import traceback
 
-from .utils import RestUtility
+from cryptography.hazmat.primitives import hashes
+
 from .model import DemographicsModel
 from .exceptions import AuthenticatorException, Errors
 
@@ -21,10 +18,9 @@ class MOSIPAuthenticator:
         else:
             self.logger = logger
 
-        self.auth_rest_util = RestUtility(config_obj.mosip_auth_server.ida_auth_url, config_obj.mosip_auth.authorization_header_constant)
         self.auth_api_url =  str(config_obj.mosip_auth_server.ida_auth_url)
+
         self.partner_id = str(config_obj.mosip_auth.partner_id)
-        
         self.psut_hash_algo = config_obj.mosip_auth.psut_hash_algo
         self.skip_auth = config_obj.mosip_auth.skip_auth
 
@@ -48,12 +44,12 @@ class MOSIPAuthenticator:
         try:
             if not self.skip_auth:
                 demographic_data = DemographicsModel(**auth_req_data)
-                with httpx.Client() as client:
-                    response = client.get(url=self.auth_api_url + "/" + vid, headers='')
-            # TODO: Compare demographic_data and response to do demographic verification.
-                    
+
+                response = requests.get(url=self.auth_api_url + "/" + vid, headers='')
+                # TODO: Compare demographic_data and response to do demographic verification.
+
             token = self.generate_psut(vid, self.partner_id, self.psut_hash_algo)
-                  
+
             return json.dumps({
                 "response": {
                     "authStatus": True,
@@ -70,7 +66,7 @@ class MOSIPAuthenticator:
             exp = traceback.format_exc()
             self.logger.error('Error Processing Auth Request. Error Message: {}'.format(exp))
             raise AuthenticatorException(Errors.AUT_BAS_001.name, Errors.AUT_BAS_001.value)
-        
+
     def generate_psut(self, vid : str, partner_id: str, hash_algo: str):
         hash_algo = getattr(hashes, hash_algo)()
         digest = hashes.Hash(hash_algo)

@@ -5,15 +5,15 @@ ARG container_user_group=mosip
 ARG container_user_uid=1001
 ARG container_user_gid=1001
 
-RUN groupadd -g ${container_user_gid} ${container_user_group} \
-&& useradd -mN -u ${container_user_uid} -G ${container_user_group} -s /bin/bash ${container_user} \
-&& apt-get update \
+RUN apt-get update \
 && apt-get -y install build-essential libsqlcipher-dev libsqlite3-dev autoconf libtool curl \
 && apt-get -y install procps \
 && ./mosip_token_seeder/requirements.txt /seeder/mosip_token_seeder/requirements.txt \
 && pip3 install -r /seeder/mosip_token_seeder/requirements.txt \
 && apt-get -y purge build-essential autoconf libtool \
 && apt-get -y autoremove \
+&& groupadd -g ${container_user_gid} ${container_user_group} \
+&& useradd -mN -u ${container_user_uid} -G ${container_user_group} -s /bin/bash ${container_user} \
 && chown -R ${container_user}:${container_user} /home/${container_user} ${container_user}:${container_user_group} /seeder 
 
 USER ${container_user}

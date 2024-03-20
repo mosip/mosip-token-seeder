@@ -14,7 +14,7 @@ RUN groupadd -g ${container_user_gid} ${container_user_group} \
 && pip3 install -r /seeder/mosip_token_seeder/requirements.txt \
 && apt-get -y purge build-essential autoconf libtool \
 && apt-get -y autoremove \
-&& chown -R ${container_user}:${container_user_group} /seeder ${container_user}:${container_user} /home/${container_user}
+&& chown -R ${container_user}:${container_user} /home/${container_user} ${container_user}:${container_user_group} /seeder 
 
 USER ${container_user}
 ADD --chown=${container_user}:${container_user_group} . /seeder

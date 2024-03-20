@@ -9,13 +9,17 @@ ADD ./mosip_token_seeder/requirements.txt /seeder/mosip_token_seeder/requirement
 
 RUN apt-get update \
 && apt-get -y install build-essential libsqlcipher-dev libsqlite3-dev autoconf libtool curl \
-&& apt-get -y install procps \
-&& pip3 install -r /seeder/mosip_token_seeder/requirements.txt \
+&& apt-get -y install procps 
+
+ADD ./mosip_token_seeder/requirements.txt /seeder/mosip_token_seeder/requirements.txt
+
+RUN pip3 install -r /seeder/mosip_token_seeder/requirements.txt \
 && apt-get -y purge build-essential autoconf libtool \
 && apt-get -y autoremove \
 && groupadd -g ${container_user_gid} ${container_user_group} \
 && useradd -mN -u ${container_user_uid} -G ${container_user_group} -s /bin/bash ${container_user} \
-&& chown -R ${container_user}:${container_user} /home/${container_user} ${container_user}:${container_user_group} /seeder 
+&& chown -R ${container_user}:${container_user_group} /seeder \
+&& chown -R ${container_user}:${container_user} /home/${container_user}
 
 USER ${container_user}
 ADD --chown=${container_user}:${container_user_group} . /seeder

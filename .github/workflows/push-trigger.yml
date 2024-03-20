@@ -19,7 +19,7 @@ jobs:
         include:
           - SERVICE_LOCATION: './'
             SERVICE_NAME: 'mosip-token-seeder'
-    uses: mosip/kattu/.github/workflows/docker-build.yml@master
+    uses: abhishek8shankar/kattu/.github/workflows/docker-build.yml@develop
     with:
       SERVICE_LOCATION: ${{ matrix.SERVICE_LOCATION }}
       SERVICE_NAME: ${{ matrix.SERVICE_NAME }}

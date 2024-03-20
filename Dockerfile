@@ -1,26 +1,26 @@
 FROM python:3.8.13-slim-bullseye
 
-RUN apt-get update
-RUN apt-get -y install build-essential libsqlcipher-dev libsqlite3-dev autoconf libtool curl
-RUN apt-get -y install procps
-ADD ./mosip_token_seeder/requirements.txt /seeder/mosip_token_seeder/requirements.txt
-RUN pip3 install -r /seeder/mosip_token_seeder/requirements.txt
-RUN apt-get -y purge build-essential autoconf libtool
-RUN apt-get -y autoremove
-
 ARG container_user=mosip
 ARG container_user_group=mosip
 ARG container_user_uid=1001
 ARG container_user_gid=1001
 
 RUN groupadd -g ${container_user_gid} ${container_user_group} \
-&& useradd -mN -u ${container_user_uid} -G ${container_user_group} -s /bin/bash ${container_user}
-
-RUN chown -R ${container_user}:${container_user_group} /seeder
+&& useradd -mN -u ${container_user_uid} -G ${container_user_group} -s /bin/bash ${container_user} \
+&& apt-get update \
+&& apt-get -y install build-essential libsqlcipher-dev libsqlite3-dev autoconf libtool curl \
+&& apt-get -y install procps \
+&& ./mosip_token_seeder/requirements.txt /seeder/mosip_token_seeder/requirements.txt \
+&& pip3 install -r /seeder/mosip_token_seeder/requirements.txt \
+&& apt-get -y purge build-essential autoconf libtool \
+&& apt-get -y autoremove \
+&& chown -R ${container_user}:${container_user_group} /seeder ${container_user}:${container_user} /home/${container_user}
 
 USER ${container_user}
 ADD --chown=${container_user}:${container_user_group} . /seeder
-WORKDIR /seeder
+ENV work_dir=/seeder
+WORKDIR /home/${container_user}
+USER ${container_user_uid}:${container_user_gid}
 
 ENV TOKENSEEDER_ROOT__PID_GREP_NAME='gunicorn'
 ENV TOKENSEEDER_GUNICORN__WORKERS=4
